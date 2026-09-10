@@ -36,22 +36,19 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
       </div>
 
       {/* Cards Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: '1.25rem'
-      }}>
+      <div className="news-cards-grid">
         {posts.map((post) => (
           <article
             key={post._id}
             onClick={() => onPostSelect(post)}
-            className="glass-panel interactive-card"
+            className="glass-panel interactive-card news-card-item"
             style={{
               overflow: 'hidden',
               cursor: 'pointer',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between'
+              justifyContent: 'space-between',
+              width: '100%'
             }}
           >
             <div>

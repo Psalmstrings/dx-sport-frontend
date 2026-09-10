@@ -73,22 +73,22 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
         </span>
       </div>
 
-      {/* Scrollable Table */}
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', minWidth: '540px' }}>
+      {/* Scrollable & Mobile Fitted Table */}
+      <div className="league-table-wrapper">
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem' }}>
           <thead>
             <tr style={{ color: '#94A3B8', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <th style={{ padding: '8px 4px', width: '32px', textAlign: 'center' }}>#</th>
-              <th style={{ padding: '8px 8px' }}>CLUB</th>
+              <th style={{ padding: '8px 4px', width: '28px', textAlign: 'center' }}>#</th>
+              <th style={{ padding: '8px 6px' }}>CLUB</th>
               <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Played">P</th>
               <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Wins">W</th>
               <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Draws">D</th>
               <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Losses">L</th>
-              <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Goals For">GF</th>
-              <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Goals Against">GA</th>
+              <th className="mobile-hide-col" style={{ padding: '8px 4px', textAlign: 'center' }} title="Goals For">GF</th>
+              <th className="mobile-hide-col" style={{ padding: '8px 4px', textAlign: 'center' }} title="Goals Against">GA</th>
               <th style={{ padding: '8px 4px', textAlign: 'center' }} title="Goal Difference">GD</th>
-              <th style={{ padding: '8px 4px', textAlign: 'center', fontWeight: '800', color: '#E6C657' }} title="Points">PTS</th>
-              <th style={{ padding: '8px 8px', textAlign: 'center' }}>FORM</th>
+              <th style={{ padding: '8px 4px', textAlign: 'center', fontWeight: '800', color: '#d6bc66' }} title="Points">PTS</th>
+              <th style={{ padding: '8px 6px', textAlign: 'center' }}>FORM</th>
             </tr>
           </thead>
           <tbody>
@@ -110,19 +110,19 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
                   style={{
                     borderBottom: '1px solid rgba(255,255,255,0.04)',
                     transition: 'background 0.2s',
-                    background: pos <= 2 ? 'rgba(230,198,87,0.05)' : 'transparent'
+                    background: pos <= 2 ? 'rgba(214,188,102,0.05)' : 'transparent'
                   }}
                 >
                   {/* Position badge */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center' }}>
                     <span style={{
-                      width: '22px',
-                      height: '22px',
+                      width: '20px',
+                      height: '20px',
                       borderRadius: '50%',
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      fontSize: '0.72rem',
+                      fontSize: '0.7rem',
                       fontWeight: '800',
                       ...posStyle
                     }}>
@@ -131,13 +131,13 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
                   </td>
 
                   {/* Team name & logo */}
-                  <td style={{ padding: '10px 8px', fontWeight: '700', color: '#FFF' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <td style={{ padding: '8px 6px', fontWeight: '700', color: '#FFF' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <div style={{
-                        width: '26px',
-                        height: '26px',
+                        width: '24px',
+                        height: '24px',
                         borderRadius: '50%',
-                        border: '1px solid rgba(230,198,87,0.3)',
+                        border: '1px solid rgba(214,188,102,0.3)',
                         background: 'rgba(255,255,255,0.05)',
                         display: 'flex',
                         alignItems: 'center',
@@ -149,50 +149,50 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
                           <img
                             src={teamLogo}
                             alt={teamName}
-                            style={{ width: '24px', height: '24px', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+                            style={{ width: '22px', height: '22px', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
                             onError={(e) => { e.target.style.display = 'none'; }}
                           />
                         ) : (
-                          <Shield size={13} color="#E6C657" />
+                          <Shield size={12} color="#d6bc66" />
                         )}
                       </div>
-                      <span style={{ whiteSpace: 'nowrap' }}>{teamName}</span>
+                      <span className="team-name-cell" title={teamName}>{teamName}</span>
                     </div>
                   </td>
 
                   {/* Played */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#CBD5E1' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center', color: '#CBD5E1' }}>
                     {row.played ?? 0}
                   </td>
 
                   {/* Wins */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#CBD5E1' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center', color: '#CBD5E1' }}>
                     {row.won ?? 0}
                   </td>
 
                   {/* Draws */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#CBD5E1' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center', color: '#CBD5E1' }}>
                     {row.drawn ?? 0}
                   </td>
 
                   {/* Losses */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#CBD5E1' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center', color: '#CBD5E1' }}>
                     {row.lost ?? 0}
                   </td>
 
-                  {/* Goals For */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#94A3B8' }}>
+                  {/* Goals For (Hidden on small mobile) */}
+                  <td className="mobile-hide-col" style={{ padding: '8px 4px', textAlign: 'center', color: '#94A3B8' }}>
                     {row.goalsFor ?? 0}
                   </td>
 
-                  {/* Goals Against */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', color: '#94A3B8' }}>
+                  {/* Goals Against (Hidden on small mobile) */}
+                  <td className="mobile-hide-col" style={{ padding: '8px 4px', textAlign: 'center', color: '#94A3B8' }}>
                     {row.goalsAgainst ?? 0}
                   </td>
 
                   {/* Goal Difference */}
                   <td style={{
-                    padding: '10px 4px',
+                    padding: '8px 4px',
                     textAlign: 'center',
                     color: gd > 0 ? '#10B981' : gd < 0 ? '#EF4444' : '#94A3B8',
                     fontWeight: gd !== 0 ? '700' : '400'
@@ -201,7 +201,7 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
                   </td>
 
                   {/* Points */}
-                  <td style={{ padding: '10px 4px', textAlign: 'center', fontWeight: '900', color: '#E6C657', fontSize: '0.95rem' }}>
+                  <td style={{ padding: '8px 4px', textAlign: 'center', fontWeight: '900', color: '#d6bc66', fontSize: '0.9rem' }}>
                     {row.points ?? 0}
                   </td>
 

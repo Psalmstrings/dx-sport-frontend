@@ -280,3 +280,62 @@ button {
   border-color: var(--gold-gray-yellow);
   box-shadow: 0 0 0 3px rgba(214, 188, 102, 0.2);
 }
+
+/* Mobile News Block Display & Fit Responsive Table Rules */
+.news-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.league-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.team-name-cell {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .news-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+  }
+
+  .news-card-item {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .main-content {
+    padding: 0.85rem 0.65rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .mobile-hide-col {
+    display: none !important;
+  }
+
+  .league-table-wrapper table {
+    min-width: 100% !important;
+    font-size: 0.76rem !important;
+  }
+
+  .league-table-wrapper th,
+  .league-table-wrapper td {
+    padding: 6px 2px !important;
+  }
+
+  .team-name-cell {
+    max-width: 105px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}

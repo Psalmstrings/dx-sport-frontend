@@ -46,7 +46,7 @@ export const Navbar = ({ activeCategory, setActiveCategory, onOpenLogin, user, o
           onClick={() => handleNavClick('HOME')}
           style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}
         >
-          <DXLogo height={70} showText={true} />
+          <DXLogo height={70} showText={false} />
         </div>
 
         {/* Center: Live Time & Search (Desktop Only) */}
