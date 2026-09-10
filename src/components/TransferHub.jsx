@@ -87,11 +87,11 @@ export const TransferHub = ({ transfers = [] }) => {
               </div>
               <span style={{
                 fontSize: '0.68rem',
-                fontWeight: '800',
+                fontWeight: '900',
                 padding: '2px 8px',
                 borderRadius: '4px',
-                background: t.status === 'COMPLETED DEAL' ? '#10B981' : '#E63946',
-                color: '#FFF'
+                background: t.status === 'COMPLETED DEAL' ? '#10B981' : '#FFFFFF',
+                color: t.status === 'COMPLETED DEAL' ? '#FFF' : '#000b3d'
               }}>
                 {t.status}
               </span>

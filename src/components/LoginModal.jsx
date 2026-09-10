@@ -133,7 +133,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@elitesport.ng"
+                  placeholder="email"
                   style={{
                     width: '100%',
                     padding: '12px 14px',
@@ -214,7 +214,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
             borderTop: '1px solid #E2E8F0',
             paddingTop: '1rem'
           }}>
-            Demo Admin: <b>admin@elitesport.ng</b> | Password: <b>admin123</b>
+            Welcome Back
           </div>
         </div>
       </div>

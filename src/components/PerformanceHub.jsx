@@ -57,7 +57,7 @@ export const PerformanceHub = ({ onSelectCategory }) => {
       {/* SECTION 1: PERFORMANCE HUB (MATCHING PDF PROTOTYPE EXACTLY) */}
       <div style={{ marginBottom: '1.25rem' }}>
         <span style={{
-          color: '#E63946',
+          color: '#FFFFFF',
           fontWeight: '900',
           fontSize: '0.8rem',
           letterSpacing: '0.12em',

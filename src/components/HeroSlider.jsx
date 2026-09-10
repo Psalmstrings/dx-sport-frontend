@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, ArrowRight, Image as ImageIcon } from 'lucide-react';
+import { Flame, ArrowRight, Image as ImageIcon, Share2 } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUrl';
 
 export const HeroSlider = ({ posts = [], onPostSelect }) => {
@@ -106,6 +106,25 @@ export const HeroSlider = ({ posts = [], onPostSelect }) => {
           >
             <span>READ FULL REPORT</span>
             <ArrowRight size={18} />
+          </button>
+
+          <button
+            onClick={() => {
+              const currentPost = heroPosts[currentIndex];
+              if (!currentPost) return;
+              const shareUrl = window.location.href;
+              if (navigator.share) {
+                navigator.share({ title: currentPost.title, text: currentPost.summary, url: shareUrl }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(shareUrl).then(() => alert('Headline link copied to clipboard!'));
+              }
+            }}
+            className="btn-outline-gold"
+            style={{ padding: '0.75rem 1.25rem' }}
+            title="Share Headline"
+          >
+            <Share2 size={18} />
+            <span>SHARE</span>
           </button>
         </div>
 

@@ -3,13 +3,13 @@ import React from 'react';
 /**
  * DX Logo component rendering metallic gold shield logo based on official prototype branding.
  */
-export const DXLogo = ({ height = 44, className = '', showText = true }) => {
+export const DXLogo = ({ height = 100, className = '', showText = true }) => {
   return (
     <div className={`dx-brand-logo-container ${className}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
       <svg 
-        width={height * 1.15} 
+        width={ height * 2.5} 
         height={height} 
-        viewBox="0 0 400 360" 
+        viewBox="0 0 750 350" 
         fill="none" 
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -77,8 +77,7 @@ export const DXLogo = ({ height = 44, className = '', showText = true }) => {
               background: 'linear-gradient(135deg, #FFF 30%, #d6bc66 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent'
-            }}>DX</span>
-            <span style={{ color: '#d6bc66', fontWeight: '800' }}>SPORTS</span>
+            }}>DX Sport</span>
           </div>
         </div>
       )}

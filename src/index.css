@@ -18,9 +18,9 @@
   --gold-gradient: linear-gradient(135deg, #F5DF98 0%, #D6BC66 50%, #A8903F 100%);
   --gold-glow: rgba(214, 188, 102, 0.3);
 
-  /* Accents */
-  --red-accent: #E63946;
-  --red-glow: rgba(230, 57, 70, 0.35);
+  /* Accents - Red replaced with White per brand specification */
+  --red-accent: #FFFFFF;
+  --red-glow: rgba(255, 255, 255, 0.35);
   --green-live: #10B981;
 
   /* Typography Colors */
@@ -125,9 +125,9 @@ button {
 }
 
 .badge-red {
-  background: var(--red-accent);
-  color: #FFF;
-  font-weight: 800;
+  background: #FFFFFF;
+  color: #000b3d;
+  font-weight: 900;
   font-size: 0.72rem;
   padding: 2px 8px;
   border-radius: 4px;

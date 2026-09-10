@@ -25,7 +25,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch }) => {
     return (
       <div style={{ marginBottom: '2.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-          <div style={{ width: '32px', height: '4px', backgroundColor: '#E63946', borderRadius: '2px' }} />
+          <div style={{ width: '32px', height: '4px', backgroundColor: '#FFFFFF', borderRadius: '2px' }} />
           <h2 style={{ fontSize: '1.4rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#FFF' }}>
             UPCOMING FIXTURES
           </h2>
@@ -53,7 +53,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch }) => {
         marginBottom: '1.25rem'
       }}>
         <div>
-          <div style={{ width: '32px', height: '4px', backgroundColor: '#E63946', borderRadius: '2px', marginBottom: '6px' }} />
+          <div style={{ width: '32px', height: '4px', backgroundColor: '#FFFFFF', borderRadius: '2px', marginBottom: '6px' }} />
           <h2 style={{ fontSize: '1.4rem', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#FFF' }}>
             FIXTURES ({matches.length})
           </h2>
@@ -293,7 +293,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch }) => {
                   cursor: 'pointer'
                 }}
               >
-                {isUpcoming ? <Bell size={16} color="#d6bc66" /> : <Play size={16} color="#E63946" />}
+                {isUpcoming ? <Bell size={16} color="#d6bc66" /> : <Play size={16} color="#FFFFFF" />}
                 <span>{item.action || (isUpcoming ? 'UPCOMING' : isFinished ? 'FULL TIME' : 'WATCH LIVE')}</span>
               </button>
             </div>

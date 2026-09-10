@@ -114,7 +114,7 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
               color: '#94A3B8',
               backgroundColor: 'rgba(11, 26, 58, 0.4)'
             }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#E6C657', fontWeight: '600' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#d6bc66', fontWeight: '700' }}>
                 <User size={13} />
                 {post.author?.name ? post.author.name.split(' ')[0] : 'DX Staff'}
               </span>
@@ -124,7 +124,32 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
                   <Eye size={13} />
                   {(post.views || 850).toLocaleString()}
                 </span>
-                <ArrowUpRight size={15} color="#E6C657" />
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const shareUrl = window.location.href;
+                    if (navigator.share) {
+                      navigator.share({ title: post.title, text: post.summary, url: shareUrl }).catch(() => {});
+                    } else {
+                      navigator.clipboard.writeText(shareUrl).then(() => alert('Article link copied to clipboard!'));
+                    }
+                  }}
+                  title="Share Article"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px',
+                    color: '#d6bc66',
+                    borderRadius: '50%',
+                    background: 'rgba(214, 188, 102, 0.1)'
+                  }}
+                >
+                  <Share2 size={13} />
+                </button>
+
+                <ArrowUpRight size={15} color="#d6bc66" />
               </div>
             </div>
           </article>

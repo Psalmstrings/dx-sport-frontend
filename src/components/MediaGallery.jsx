@@ -50,7 +50,7 @@ export const MediaGallery = ({ mediaItems = [] }) => {
         paddingBottom: '0.75rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '4px', height: '24px', backgroundColor: '#E63946', borderRadius: '2px' }} />
+          <div style={{ width: '4px', height: '24px', backgroundColor: '#FFFFFF', borderRadius: '2px' }} />
           <h2 style={{ fontSize: '1.4rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#FFF' }}>
             SPORTS MEDIA & GALLERY HIGHLIGHTS
           </h2>

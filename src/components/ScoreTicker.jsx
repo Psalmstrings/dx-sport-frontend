@@ -59,7 +59,7 @@ export const ScoreTicker = ({ matches = [], onMatchSelect }) => {
                   fontWeight: '800'
                 }}
               >
-                <span style={{ color: '#E63946' }}>
+                <span style={{ color: '#FFFFFF' }}>
                   {typeof m.homeTeam === 'object' ? (m.homeTeam?.code || m.homeTeam?.shortName || m.homeTeam?.name) : (m.homeTeam || 'HOME')}
                 </span>
                 <span style={{ color: '#d6bc66', fontFamily: 'monospace', fontSize: '0.9rem' }}>
