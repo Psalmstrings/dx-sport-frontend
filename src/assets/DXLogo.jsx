@@ -1,12 +1,12 @@
 import React from 'react';
-import dxLogo from '../assets/WhatsApp Image 2026-09-12 at 1.50.36 AM.jpeg';
+import dxLogo from '../assets/Untitled_design__2_-removebg-preview.png';
 
 /**
  * DX Sport Logo Component
  * Uses the existing logo image from the assets folder.
  */
 export const DXLogo = ({
-  height = 150,
+  height = 250,
   className = '',
   showText = false,
 }) => {
@@ -26,7 +26,7 @@ export const DXLogo = ({
           width: 'auto',
           objectFit: 'contain',
           display: 'block',
-          marginLeft: '100px',
+          
         }}
       />
 

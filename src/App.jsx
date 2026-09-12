@@ -236,6 +236,9 @@ export function App() {
                 </svg>
                 <span>YouTube</span>
               </a>
+
+              {/* Advertise */}
+         
             </div>
           </div>
 
@@ -243,7 +246,30 @@ export function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.85rem', fontWeight: '800', color: '#d6bc66', flexWrap: 'wrap' }}>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>PRIVACY</a>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>TERMS</a>
-            <a href="mailto:dxsportsofficial@gmail.com" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>ADVERTISE</a>
+                 <a
+                href="https://www.youtube.com/channel/UCKTdgZGovXp1D2pdu-G7taQ"
+                target="_blank"
+                rel="noopener noreferrer"
+                title="DX Sports YouTube"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+                  border: '1px solid rgba(214, 188, 102, 0.3)',
+                  color: '#FFFFFF',
+                  padding: '8px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.825rem',
+                  fontWeight: '800',
+                  transition: 'all 0.2s ease',
+                  textDecoration: 'none'
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#cedb14'; e.currentTarget.style.borderColor = '#FF0000'; }}
+                onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(214, 188, 102, 0.3)'; }}
+              >
+                <span>Place your Advert</span>
+              </a>
           </div>
         </div>
       </footer>

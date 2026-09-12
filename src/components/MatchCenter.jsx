@@ -118,9 +118,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch }) => {
               {/* Header: League name + Status badge */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#94A3B8', letterSpacing: '0.05em' }}>
-                  {typeof item.league === 'object'
-                    ? (item.league?.name || item.league?.code)
-                    : (item.league || item.leagueName || 'NPFL')}
+                  NPFL
                 </span>
 
                 <span style={{
