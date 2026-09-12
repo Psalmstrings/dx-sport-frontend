@@ -120,7 +120,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch }) => {
                 <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#94A3B8', letterSpacing: '0.05em' }}>
                   {typeof item.league === 'object'
                     ? (item.league?.name || item.league?.code)
-                    : (item.league || item.leagueName || 'PREMIER LEAGUE')}
+                    : (item.league || item.leagueName || 'NPFL')}
                 </span>
 
                 <span style={{

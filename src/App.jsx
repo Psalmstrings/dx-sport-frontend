@@ -243,7 +243,7 @@ export function App() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.85rem', fontWeight: '800', color: '#d6bc66', flexWrap: 'wrap' }}>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>PRIVACY</a>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>TERMS</a>
-            <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>ADVERTISE</a>
+            <a href="mailto:dxsportsofficial@gmail.com" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>ADVERTISE</a>
           </div>
         </div>
       </footer>
