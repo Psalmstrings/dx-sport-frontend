@@ -24,7 +24,7 @@ const posBadgeStyle = (pos) => {
   return { background: 'transparent', color: '#CBD5E1' };
 };
 
-export const LeagueTable = ({ standings = [], leagueName = '' }) => {
+export const LeagueTable = ({ standings = [], leagueName = '', onViewFullTable }) => {
   // Derive league name from first standings entry if not passed as prop
   const displayLeagueName = leagueName || 'LEAGUE STANDINGS';
 
@@ -53,7 +53,9 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
         justifyContent: 'space-between',
         marginBottom: '1rem',
         borderBottom: '1px solid rgba(255,255,255,0.08)',
-        paddingBottom: '0.75rem'
+        paddingBottom: '0.75rem',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Trophy size={20} color="#E6C657" />
@@ -61,16 +63,31 @@ export const LeagueTable = ({ standings = [], leagueName = '' }) => {
             {displayLeagueName}
           </h3>
         </div>
-        <span style={{
-          fontSize: '0.7rem',
-          color: '#d6bc66',
-          background: 'rgba(214,188,102,0.12)',
-          padding: '3px 10px',
-          borderRadius: '4px',
-          fontWeight: '800'
-        }}>
-          {standings.length} TEAMS
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <span style={{
+            fontSize: '0.7rem',
+            color: '#d6bc66',
+            background: 'rgba(214,188,102,0.12)',
+            padding: '3px 10px',
+            borderRadius: '4px',
+            fontWeight: '800'
+          }}>
+            {standings.length} TEAMS
+          </span>
+          {onViewFullTable && (
+            <button
+              onClick={onViewFullTable}
+              className="btn-outline-gold"
+              style={{
+                padding: '3px 10px',
+                fontSize: '0.72rem',
+                minHeight: '26px'
+              }}
+            >
+              <span>FULL TABLE →</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Scrollable & Mobile Fitted Table */}

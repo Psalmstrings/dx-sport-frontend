@@ -1,8 +1,8 @@
 import React from 'react';
-import { Newspaper, Eye, Clock, User, ArrowUpRight, Tag, Share2 } from 'lucide-react';
+import { Newspaper, Eye, Clock, User, ArrowUpRight, Tag, Share2, ArrowRight } from 'lucide-react';
 import { getImageUrl } from '../utils/imageUrl';
 
-export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
+export const NewsFeed = ({ posts = [], activeCategory, onPostSelect, isHome = false, onViewMoreNews }) => {
   if (!posts || posts.length === 0) {
     return (
       <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center' }}>
@@ -13,6 +13,15 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
     );
   }
 
+  // On homepage, display up to 8 latest posts, on News page display all
+  const displayPosts = isHome ? posts.slice(0, 8) : posts;
+
+  const headerTitle = isHome
+    ? 'LATEST FOOTBALL NEWS'
+    : (activeCategory === 'ALL' || activeCategory === 'NEWS')
+      ? 'ALL FOOTBALL NEWS'
+      : `${activeCategory} NEWS`;
+
   return (
     <div>
       {/* Section Heading */}
@@ -22,22 +31,43 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
         justifyContent: 'space-between',
         marginBottom: '1.25rem',
         borderBottom: '2px solid rgba(230, 198, 87, 0.2)',
-        paddingBottom: '0.75rem'
+        paddingBottom: '0.75rem',
+        flexWrap: 'wrap',
+        gap: '0.75rem'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{ width: '4px', height: '24px', backgroundColor: '#E6C657', borderRadius: '2px' }} />
-          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            {activeCategory === 'ALL' ? 'LATEST FOOTBALL HEADLINES' : `${activeCategory} NEWS`}
+          <h2 style={{ fontSize: '1.4rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.02em', color: '#FFF', margin: 0 }}>
+            {headerTitle}
           </h2>
         </div>
-        <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: '600' }}>
-          Showing {posts.length} articles
-        </span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <span style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: '600' }}>
+            Showing {displayPosts.length} articles
+          </span>
+
+          {isHome && onViewMoreNews && (
+            <button
+              onClick={onViewMoreNews}
+              className="btn-outline-gold"
+              style={{
+                padding: '5px 14px',
+                fontSize: '0.78rem',
+                minHeight: '32px',
+                gap: '6px'
+              }}
+            >
+              <span>VIEW MORE NEWS</span>
+              <ArrowRight size={13} />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Cards Grid */}
       <div className="news-cards-grid">
-        {posts.map((post) => (
+        {displayPosts.map((post) => (
           <article
             key={post._id}
             onClick={() => onPostSelect(post)}
@@ -152,6 +182,24 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect }) => {
           </article>
         ))}
       </div>
+
+      {/* Centered View More Button for Homepage */}
+      {isHome && onViewMoreNews && (
+        <div style={{ textAlign: 'center', marginTop: '1.75rem' }}>
+          <button
+            onClick={onViewMoreNews}
+            className="btn-outline-gold"
+            style={{
+              padding: '10px 28px',
+              fontSize: '0.875rem',
+              gap: '8px'
+            }}
+          >
+            <span>VIEW MORE NEWS</span>
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -34,7 +34,7 @@ export function App() {
 
   const loadData = async () => {
     setLoading(true);
-    const categoryToFetch = (activeCategory === 'HOME' || activeCategory === 'FIXTURES' || activeCategory === 'MEDIA') ? 'ALL' : activeCategory;
+    const categoryToFetch = (activeCategory === 'HOME' || activeCategory === 'NEWS' || activeCategory === 'FIXTURES' || activeCategory === 'TABLE' || activeCategory === 'MEDIA') ? 'ALL' : activeCategory;
     
     const [fetchedPosts, fetchedMatches, fetchedStandings, fetchedMedia] = await Promise.all([
       API.getPosts(categoryToFetch),
@@ -60,6 +60,11 @@ export function App() {
     setUser(null);
   };
 
+  const navigateTo = (category) => {
+    setActiveCategory(category);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <div className="app-container">
       {/* 1. Header Navigation Bar */}
@@ -79,40 +84,75 @@ export function App() {
         {/* Admin & Editor Control Portal Header (Visible when logged in) */}
         {user && <AdminPortal user={user} onRefreshData={loadData} />}
 
-        {/* Daily News Flash Hero Banner */}
+        {/* Daily News Flash Hero Banner (for HOME and NEWS) */}
         {(activeCategory === 'HOME' || activeCategory === 'NEWS') && (
           <HeroSlider posts={posts} onPostSelect={(post) => setSelectedPost(post)} />
-        )}
-
-        {/* Upcoming Fixtures Section */}
-        {(activeCategory === 'HOME' || activeCategory === 'FIXTURES') && (
-          <MatchCenter matches={matches} />
         )}
 
         {/* Content Layout Routing */}
         {activeCategory === 'MEDIA' ? (
           <MediaGallery mediaItems={mediaItems} />
         ) : activeCategory === 'FIXTURES' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          /* Dedicated Fixtures & Scores Page (Upcoming matches + Scores of played matches) */
+          <MatchCenter
+            matches={matches}
+            isHome={false}
+          />
+        ) : activeCategory === 'TABLE' ? (
+          /* Dedicated Table Page (Table Only) */
+          <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <LeagueTable standings={standings} />
           </div>
-        ) : (
-          /* Content Grid Layout for HOME and NEWS PAGE */
+        ) : activeCategory === 'NEWS' ? (
+          /* Dedicated News Page */
           <div className="content-grid">
-            {/* Main Column */}
             <div>
               <NewsFeed
                 posts={posts}
                 activeCategory={activeCategory}
                 onPostSelect={(post) => setSelectedPost(post)}
+                isHome={false}
               />
             </div>
-
-            {/* Sidebar Column */}
             <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <LeagueTable standings={standings} />
+              <LeagueTable
+                standings={standings}
+                onViewFullTable={() => navigateTo('TABLE')}
+              />
             </aside>
           </div>
+        ) : (
+          /* HOMEPAGE LAYOUT */
+          <>
+            {/* 4 Upcoming Fixtures on Homepage with View More button */}
+            <MatchCenter
+              matches={matches}
+              isHome={true}
+              onViewMore={() => navigateTo('FIXTURES')}
+            />
+
+            {/* Content Grid: Main News Column & Table Sidebar */}
+            <div className="content-grid">
+              {/* Main Column: Latest News with View More button */}
+              <div>
+                <NewsFeed
+                  posts={posts}
+                  activeCategory={activeCategory}
+                  onPostSelect={(post) => setSelectedPost(post)}
+                  isHome={true}
+                  onViewMoreNews={() => navigateTo('NEWS')}
+                />
+              </div>
+
+              {/* Sidebar Column: League Table preview with Full Table link */}
+              <aside style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <LeagueTable
+                  standings={standings}
+                  onViewFullTable={() => navigateTo('TABLE')}
+                />
+              </aside>
+            </div>
+          </>
         )}
 
       </main>
@@ -247,7 +287,7 @@ export function App() {
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>PRIVACY</a>
             <a href="#" onClick={(e) => e.preventDefault()} style={{ transition: 'color 0.2s' }}>TERMS</a>
                  <a
-                href="https://www.youtube.com/channel/UCKTdgZGovXp1D2pdu-G7taQ"
+                href="mailto:dxsportsofficial@gmail.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="DX Sports YouTube"

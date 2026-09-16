@@ -20,8 +20,9 @@ export const Navbar = ({ activeCategory, setActiveCategory, onOpenLogin, user, o
   const navCategories = [
     { id: 'HOME', label: 'HOME' },
     { id: 'NEWS', label: 'NEWS PAGE' },
-    { id: 'MEDIA', label: 'MEDIA PAGE' },
-    { id: 'FEATURES', label: 'FIXTURES & TABLE' }
+    { id: 'FIXTURES', label: 'FIXTURES & SCORES' },
+    { id: 'TABLE', label: 'TABLE' },
+    { id: 'MEDIA', label: 'MEDIA PAGE' }
   ];
 
   const handleNavClick = (catId) => {
