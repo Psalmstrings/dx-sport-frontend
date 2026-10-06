@@ -22,12 +22,18 @@ export const Navbar = ({ activeCategory, setActiveCategory, onOpenLogin, user, o
     { id: 'NEWS', label: 'NEWS PAGE' },
     { id: 'FIXTURES', label: 'FIXTURES & SCORES' },
     { id: 'TABLE', label: 'TABLE' },
-    { id: 'MEDIA', label: 'MEDIA PAGE' }
+    { id: 'MEDIA', label: 'MEDIA PAGE' },
+    { id: 'ACADEMY', label: 'ACADEMY LMS' }
   ];
 
   const handleNavClick = (catId) => {
     setActiveCategory(catId);
     setMobileMenuOpen(false);
+    if (catId === 'ACADEMY') {
+      window.history.pushState({}, '', '/academy');
+    } else if (window.location.pathname.startsWith('/academy') || window.location.pathname.startsWith('/verify-certificate')) {
+      window.history.pushState({}, 'DX SPORTS', '/');
+    }
   };
 
   return (

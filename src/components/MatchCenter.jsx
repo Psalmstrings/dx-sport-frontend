@@ -11,6 +11,102 @@ const resolveLogoUrl = (url) => {
   return `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
 };
 
+/**
+ * Map a league code (or full name) → the correct short display label shown on
+ * every match card.  Add new competitions here as the platform expands.
+ *
+ * Priority: code match → name substring match → raw name → 'Football'
+ *
+ * This ensures:
+ *   NPFL matches  → "NPFL"          (Nigeria Premier Football League)
+ *   EPL matches   → "Premier League" (English Premier League)
+ *   La Liga       → "La Liga"
+ *   …and so on
+ */
+const LEAGUE_CODE_MAP = {
+  // Nigerian
+  NPFL:         'NPFL',
+  'NPFL1':      'NPFL',
+  'NGA.1':      'NPFL',
+  // English
+  EPL:          'Premier League',
+  PL:           'Premier League',
+  'ENG.1':      'Premier League',
+  // Spanish
+  LALIGA:       'La Liga',
+  PD:           'La Liga',
+  'ESP.1':      'La Liga',
+  // Italian
+  SERIEA:       'Serie A',
+  SA:           'Serie A',
+  'ITA.1':      'Serie A',
+  // German
+  BL1:          'Bundesliga',
+  BUNDESLIGA:   'Bundesliga',
+  'GER.1':      'Bundesliga',
+  // French
+  FL1:          'Ligue 1',
+  LIGUE1:       'Ligue 1',
+  'FRA.1':      'Ligue 1',
+  // UEFA
+  CL:           'Champions League',
+  UCL:          'Champions League',
+  UEL:          'Europa League',
+  EL:           'Europa League',
+  UECL:         'Conference League',
+  // South American
+  BSA:          'Brasileirão',
+  APT:          'Primera División',
+  // CAF
+  CAF:          'CAF',
+  CAFCL:        'CAF Champions League',
+};
+
+const NAME_FRAGMENT_MAP = [
+  ['Nigeria Premier', 'NPFL'],
+  ['NPFL',            'NPFL'],
+  ['English Premier', 'Premier League'],
+  ['Premier League',  'Premier League'],
+  ['La Liga',         'La Liga'],
+  ['Serie A',         'Serie A'],
+  ['Bundesliga',      'Bundesliga'],
+  ['Ligue 1',         'Ligue 1'],
+  ['Champions League','Champions League'],
+  ['Europa League',   'Europa League'],
+  ['Conference League','Conference League'],
+];
+
+const getLeagueDisplayName = (league) => {
+  if (!league) return 'Football';
+
+  // Populated object from API: { name, code, … }
+  if (typeof league === 'object') {
+    const name = league.name || '';
+    const code = (league.code || '').toUpperCase().trim();
+
+    // 1. Name takes highest priority (authoritative for competition identity)
+    for (const [fragment, label] of NAME_FRAGMENT_MAP) {
+      if (name && name.toLowerCase().includes(fragment.toLowerCase())) return label;
+    }
+
+    // 2. Code as fallback (e.g. league has no name yet)
+    if (code && LEAGUE_CODE_MAP[code]) return LEAGUE_CODE_MAP[code];
+
+    // 3. Raw name as last resort
+    return name || 'Football';
+  }
+
+  // Raw string (un-populated): try code map then name fragments
+  const str = String(league).trim();
+  const strUpper = str.toUpperCase();
+  if (LEAGUE_CODE_MAP[strUpper]) return LEAGUE_CODE_MAP[strUpper];
+  for (const [fragment, label] of NAME_FRAGMENT_MAP) {
+    if (str.toLowerCase().includes(fragment.toLowerCase())) return label;
+  }
+  return str || 'Football';
+};
+
+
 // Status badge styling helper
 const statusBadge = (status) => {
   if (status === 'LIVE') return { label: 'LIVE', color: '#10B981', bg: 'rgba(16,185,129,0.15)', showDot: true };
@@ -65,7 +161,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
         {/* Header: League name + Status badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
           <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#94A3B8', letterSpacing: '0.05em' }}>
-            {typeof item.league === 'object' ? item.league?.name || 'NPFL' : 'NPFL'}
+            {getLeagueDisplayName(item.league)}
           </span>
 
           <span style={{
