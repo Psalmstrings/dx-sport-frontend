@@ -143,9 +143,9 @@ export const API = {
   },
 
   // --- TEAMS REGISTRATION & MANAGEMENT ---
-  async getTeams() {
+  async getTeams(params = {}) {
     try {
-      const response = await api.get('/teams');
+      const response = await api.get('/teams', { params });
       return response.data?.teams || [];
     } catch (err) {
       console.error('[API Error] Fetch teams failed:', err.message);
@@ -162,29 +162,56 @@ export const API = {
     }
   },
 
-  async deleteTeam(id) {
-  try {
-    const response = await api.delete(`/teams/${id}`);
-
-    return {
-      success: true,
-      message: response.data?.message,
-      deletedTeamId: response.data?.deletedTeamId,
-      deletedTeamName: response.data?.deletedTeamName,
-      affectedLeagues: response.data?.affectedLeagues || []
-    };
-  } catch (err) {
-    return {
-      success: false,
-      error: err.response?.data?.message || err.message
-    };
-  }
-},
-
-  // --- LEAGUES ---
-  async getLeagues() {
+  async updateTeam(id, teamData) {
     try {
-      const response = await api.get('/leagues');
+      const response = await api.put(`/teams/${id}`, teamData);
+      return { success: true, team: response.data?.team };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async assignTeamCompetition(id, competitionId) {
+    try {
+      const response = await api.post(`/teams/${id}/competitions`, { competitionId });
+      return { success: true, team: response.data?.team, message: response.data?.message };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async removeTeamCompetition(id, competitionId) {
+    try {
+      const response = await api.delete(`/teams/${id}/competitions/${competitionId}`);
+      return { success: true, team: response.data?.team, message: response.data?.message };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async deleteTeam(id) {
+    try {
+      const response = await api.delete(`/teams/${id}`);
+
+      return {
+        success: true,
+        message: response.data?.message,
+        deletedTeamId: response.data?.deletedTeamId,
+        deletedTeamName: response.data?.deletedTeamName,
+        affectedLeagues: response.data?.affectedLeagues || []
+      };
+    } catch (err) {
+      return {
+        success: false,
+        error: err.response?.data?.message || err.message
+      };
+    }
+  },
+
+  // --- LEAGUES & COMPETITIONS ---
+  async getLeagues(params = {}) {
+    try {
+      const response = await api.get('/leagues', { params });
       return response.data?.leagues || [];
     } catch (err) {
       console.error('[API Error] Fetch leagues failed:', err.message);
@@ -192,11 +219,38 @@ export const API = {
     }
   },
 
+  async createLeague(leagueData) {
+    try {
+      const response = await api.post('/leagues', leagueData);
+      return { success: true, league: response.data?.league, message: response.data?.message };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async updateLeague(id, leagueData) {
+    try {
+      const response = await api.put(`/leagues/${id}`, leagueData);
+      return { success: true, league: response.data?.league, message: response.data?.message };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async toggleLeagueStatus(id) {
+    try {
+      const response = await api.patch(`/leagues/${id}/status`);
+      return { success: true, league: response.data?.league, message: response.data?.message };
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
   // --- LEAGUE STANDINGS (AUTOMATED) ---
 
-  async getStandings() {
+  async getStandings(leagueId = 'current') {
     try {
-      const response = await api.get('/table');
+      const response = await api.get(`/table/${leagueId}`);
       return response.data?.standings || [];
     } catch (err) {
       console.error('[API Error] Fetch standings failed:', err.message);

@@ -79,8 +79,9 @@ const NAME_FRAGMENT_MAP = [
 const getLeagueDisplayName = (league) => {
   if (!league) return 'Football';
 
-  // Populated object from API: { name, code, … }
+  // Populated object from API: { name, code, shortName, … }
   if (typeof league === 'object') {
+    if (league.shortName) return league.shortName;
     const name = league.name || '';
     const code = (league.code || '').toUpperCase().trim();
 
@@ -93,7 +94,7 @@ const getLeagueDisplayName = (league) => {
     if (code && LEAGUE_CODE_MAP[code]) return LEAGUE_CODE_MAP[code];
 
     // 3. Raw name as last resort
-    return name || 'Football';
+    return name || code || 'Football';
   }
 
   // Raw string (un-populated): try code map then name fragments
@@ -118,17 +119,48 @@ const statusBadge = (status) => {
 
 export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onViewMore }) => {
   const [activeTab, setActiveTab] = useState('ALL'); // 'ALL' | 'UPCOMING' | 'RESULTS'
+  const [competitionFilter, setCompetitionFilter] = useState('ALL'); // 'ALL' | competitionId
 
-  // Separate matches into upcoming and played (finished / live)
-  const upcomingMatches = matches.filter(
+  // Extract unique competitions present in the matches dataset
+  const availableCompetitions = React.useMemo(() => {
+    const map = new Map();
+    matches.forEach((m) => {
+      if (!m.league) return;
+      const id = typeof m.league === 'object'
+        ? (m.league._id || m.league.code || m.league.shortName)
+        : String(m.league);
+      const label = typeof m.league === 'object'
+        ? (m.league.shortName || m.league.code || m.league.name)
+        : getLeagueDisplayName(m.league);
+      if (id && !map.has(id)) {
+        map.set(id, { id, label });
+      }
+    });
+    return Array.from(map.values());
+  }, [matches]);
+
+  // Filter matches by selected competition
+  const filteredMatches = React.useMemo(() => {
+    if (competitionFilter === 'ALL') return matches;
+    return matches.filter((m) => {
+      if (!m.league) return false;
+      const id = typeof m.league === 'object'
+        ? (m.league._id || m.league.code || m.league.shortName)
+        : String(m.league);
+      return id === competitionFilter;
+    });
+  }, [matches, competitionFilter]);
+
+  // Separate filtered matches into upcoming and played (finished / live)
+  const upcomingMatches = filteredMatches.filter(
     (m) => m.status === 'UPCOMING' || !m.status
   );
-  const playedMatches = matches.filter(
+  const playedMatches = filteredMatches.filter(
     (m) => m.status === 'FINISHED' || m.status === 'LIVE'
   );
 
   // For Homepage: strictly display at most 4 upcoming matches (or first 4 if none explicitly marked)
-  const homeDisplayMatches = (upcomingMatches.length > 0 ? upcomingMatches : matches).slice(0, 4);
+  const homeDisplayMatches = (upcomingMatches.length > 0 ? upcomingMatches : filteredMatches).slice(0, 4);
 
   const renderMatchCard = (item, idx) => {
     const isLive = item.status === 'LIVE';
@@ -160,7 +192,16 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
       >
         {/* Header: League name + Status badge */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-          <span style={{ fontSize: '0.78rem', fontWeight: '900', color: '#94A3B8', letterSpacing: '0.05em' }}>
+          <span style={{
+            fontSize: '0.74rem',
+            fontWeight: '900',
+            color: '#d6bc66',
+            letterSpacing: '0.05em',
+            background: 'rgba(214, 188, 102, 0.12)',
+            border: '1px solid rgba(214, 188, 102, 0.35)',
+            padding: '2px 8px',
+            borderRadius: '4px'
+          }}>
             {getLeagueDisplayName(item.league)}
           </span>
 
@@ -402,15 +443,75 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
           )}
         </div>
 
+        {/* Dynamic Competition Filter Bar (Homepage) */}
+        {availableCompetitions.length > 1 && (
+          <div style={{
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            marginBottom: '1.25rem',
+            alignItems: 'center'
+          }}>
+            <button
+              onClick={() => setCompetitionFilter('ALL')}
+              style={{
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '0.74rem',
+                fontWeight: '800',
+                cursor: 'pointer',
+                border: competitionFilter === 'ALL' ? '1px solid #d6bc66' : '1px solid rgba(255,255,255,0.12)',
+                background: competitionFilter === 'ALL' ? 'rgba(214,188,102,0.2)' : 'rgba(0,11,61,0.6)',
+                color: competitionFilter === 'ALL' ? '#d6bc66' : '#FFF',
+                transition: 'all 0.2s'
+              }}
+            >
+              ALL ({matches.length})
+            </button>
+            {availableCompetitions.map((comp) => {
+              const isSelected = competitionFilter === comp.id;
+              const count = matches.filter((m) => {
+                const id = typeof m.league === 'object' ? (m.league._id || m.league.code || m.league.shortName) : String(m.league);
+                return id === comp.id;
+              }).length;
+              return (
+                <button
+                  key={comp.id}
+                  onClick={() => setCompetitionFilter(comp.id)}
+                  style={{
+                    padding: '4px 12px',
+                    borderRadius: '20px',
+                    fontSize: '0.74rem',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    border: isSelected ? '1px solid #d6bc66' : '1px solid rgba(255,255,255,0.12)',
+                    background: isSelected ? 'rgba(214,188,102,0.2)' : 'rgba(0,11,61,0.6)',
+                    color: isSelected ? '#d6bc66' : '#FFF',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {comp.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* 4 Cards Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '1.25rem',
-          marginBottom: '1.5rem'
-        }}>
-          {homeDisplayMatches.map(renderMatchCard)}
-        </div>
+        {homeDisplayMatches.length > 0 ? (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.25rem',
+            marginBottom: '1.5rem'
+          }}>
+            {homeDisplayMatches.map(renderMatchCard)}
+          </div>
+        ) : (
+          <div className="glass-panel" style={{ padding: '2.5rem', textAlign: 'center', color: '#94A3B8', marginBottom: '1.5rem' }}>
+            No matches found for the selected competition.
+          </div>
+        )}
 
         {/* Centered View More Button */}
         {onViewMore && (
@@ -480,7 +581,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
               transition: 'all 0.2s'
             }}
           >
-            ALL ({matches.length})
+            ALL ({filteredMatches.length})
           </button>
           <button
             onClick={() => setActiveTab('UPCOMING')}
@@ -513,6 +614,67 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
         </div>
       </div>
 
+      {/* Dynamic Competition Filter Bar (Dedicated Page) */}
+      {availableCompetitions.length > 1 && (
+        <div style={{
+          display: 'flex',
+          gap: '8px',
+          flexWrap: 'wrap',
+          marginBottom: '1.5rem',
+          alignItems: 'center',
+          background: 'rgba(0, 11, 61, 0.5)',
+          padding: '10px 14px',
+          borderRadius: '10px',
+          border: '1px solid rgba(255, 255, 255, 0.06)'
+        }}>
+          <span style={{ fontSize: '0.78rem', color: '#94A3B8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            FILTER BY LEAGUE / CUP:
+          </span>
+          <button
+            onClick={() => setCompetitionFilter('ALL')}
+            style={{
+              padding: '5px 14px',
+              borderRadius: '20px',
+              fontSize: '0.76rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              border: competitionFilter === 'ALL' ? '1px solid #d6bc66' : '1px solid rgba(255,255,255,0.12)',
+              background: competitionFilter === 'ALL' ? 'rgba(214,188,102,0.2)' : 'rgba(5,20,84,0.6)',
+              color: competitionFilter === 'ALL' ? '#d6bc66' : '#FFF',
+              transition: 'all 0.2s'
+            }}
+          >
+            ALL COMPETITIONS ({matches.length})
+          </button>
+          {availableCompetitions.map((comp) => {
+            const isSelected = competitionFilter === comp.id;
+            const count = matches.filter((m) => {
+              const id = typeof m.league === 'object' ? (m.league._id || m.league.code || m.league.shortName) : String(m.league);
+              return id === comp.id;
+            }).length;
+            return (
+              <button
+                key={comp.id}
+                onClick={() => setCompetitionFilter(comp.id)}
+                style={{
+                  padding: '5px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.76rem',
+                  fontWeight: '800',
+                  cursor: 'pointer',
+                  border: isSelected ? '1px solid #d6bc66' : '1px solid rgba(255,255,255,0.12)',
+                  background: isSelected ? 'rgba(214,188,102,0.2)' : 'rgba(5,20,84,0.6)',
+                  color: isSelected ? '#d6bc66' : '#FFF',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {comp.label} ({count})
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Conditional Content by Active Tab */}
       {activeTab === 'ALL' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -534,7 +696,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
               </div>
             ) : (
               <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.9rem' }}>
-                No upcoming matches scheduled at this time.
+                No upcoming matches scheduled for this selection.
               </div>
             )}
           </div>
@@ -557,7 +719,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
               </div>
             ) : (
               <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.9rem' }}>
-                No match results recorded yet.
+                No match results recorded for this selection.
               </div>
             )}
           </div>
@@ -576,7 +738,7 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
             <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: '#94A3B8' }}>
               <Calendar size={40} color="#d6bc66" style={{ marginBottom: '0.75rem' }} />
               <h4 style={{ color: '#FFF', fontSize: '1.1rem', fontWeight: '800' }}>No Upcoming Fixtures</h4>
-              <p style={{ fontSize: '0.88rem' }}>Check back soon for newly scheduled games.</p>
+              <p style={{ fontSize: '0.88rem' }}>Check back soon for newly scheduled games in this competition.</p>
             </div>
           )}
         </div>

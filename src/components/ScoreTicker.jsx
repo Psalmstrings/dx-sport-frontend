@@ -40,6 +40,9 @@ export const ScoreTicker = ({ matches = [], onMatchSelect }) => {
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '16px' }}>
           {matches.map((m) => {
             const isLive = m.status === 'LIVE';
+            const compTag = typeof m.league === 'object'
+              ? (m.league?.shortName || m.league?.code || '')
+              : (m.league || '');
 
             return (
               <div
@@ -59,6 +62,19 @@ export const ScoreTicker = ({ matches = [], onMatchSelect }) => {
                   fontWeight: '800'
                 }}
               >
+                {compTag && (
+                  <span style={{
+                    fontSize: '0.68rem',
+                    color: '#d6bc66',
+                    background: 'rgba(214, 188, 102, 0.15)',
+                    padding: '2px 5px',
+                    borderRadius: '3px',
+                    letterSpacing: '0.04em'
+                  }}>
+                    {compTag}
+                  </span>
+                )}
+
                 <span style={{ color: '#FFFFFF' }}>
                   {typeof m.homeTeam === 'object' ? (m.homeTeam?.code || m.homeTeam?.shortName || m.homeTeam?.name) : (m.homeTeam || 'HOME')}
                 </span>

@@ -25,8 +25,8 @@ const posBadgeStyle = (pos) => {
 };
 
 export const LeagueTable = ({ standings = [], leagueName = '', onViewFullTable }) => {
-  // Derive league name from first standings entry if not passed as prop
-  const displayLeagueName = leagueName || 'LEAGUE STANDINGS';
+  // The public standings table is dedicated exclusively to NPFL
+  const displayLeagueName = leagueName || 'NPFL STANDINGS';
 
   if (standings.length === 0) {
     return (
