@@ -13,6 +13,9 @@ import CoursePlayer from './pages/CoursePlayer';
 import MyCertificates from './pages/MyCertificates';
 import VerifyCertificate from './pages/VerifyCertificate';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AcademyUnderConstruction from './pages/AcademyUnderConstruction';
+import ElearningAPI from '../services/elearningApi';
+import { GraduationCap } from 'lucide-react';
 
 // Pages that use a compact authenticated layout (no full-width footer)
 const AUTH_VIEWS = ['DASHBOARD', 'APPLICATIONS', 'CERTIFICATES', 'LEARN', 'ADMIN_DASHBOARD'];
@@ -21,6 +24,32 @@ export const AcademyRouter = ({ onBackToSports }) => {
   const [view, setView] = useState('LANDING');
   const [selectedProgramSlug, setSelectedProgramSlug] = useState('');
   const [verificationCertId, setVerificationCertId] = useState('');
+  const [previewStatus, setPreviewStatus] = useState('CHECKING'); // 'CHECKING' | 'AUTHORIZED' | 'UNAUTHORIZED'
+
+  // Verify server-validated preview session on mount
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkAuthorization = async () => {
+      try {
+        const res = await ElearningAPI.getPreviewStatus();
+        if (isMounted) {
+          if (res && res.authorized) {
+            setPreviewStatus('AUTHORIZED');
+          } else {
+            setPreviewStatus('UNAUTHORIZED');
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          setPreviewStatus('UNAUTHORIZED');
+        }
+      }
+    };
+
+    checkAuthorization();
+    return () => { isMounted = false; };
+  }, []);
 
   // Synchronize with URL path on initial mount and browser back/forward
   useEffect(() => {
@@ -54,6 +83,9 @@ export const AcademyRouter = ({ onBackToSports }) => {
       } else if (path.startsWith('/academy/admin')) {
         setView('ADMIN_DASHBOARD');
       } else if (path === '/academy') {
+        setView('LANDING');
+      } else {
+        // Fallback for any unknown academy subpath — safe, no blank screen
         setView('LANDING');
       }
     };
@@ -90,17 +122,74 @@ export const AcademyRouter = ({ onBackToSports }) => {
     window.history.pushState({}, '', newUrl);
   };
 
-  // Show compact footer on authenticated/LMS pages; full footer on public pages
+  const handleAccessGranted = () => {
+    setPreviewStatus('AUTHORIZED');
+    // If arriving at /academy, land on the Academy landing page
+    if (view === 'LANDING' || window.location.pathname === '/academy') {
+      setView('LANDING');
+      window.history.pushState({}, '', '/academy');
+    }
+  };
+
+  const handleExitPreview = async () => {
+    try {
+      await ElearningAPI.exitPreviewAccess();
+    } catch (e) {}
+    setPreviewStatus('UNAUTHORIZED');
+    setView('LANDING');
+    window.history.pushState({}, '', '/academy');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── 1. LOADING STATE WHILE CHECKING SERVER AUTHORIZATION ───────────────
+  if (previewStatus === 'CHECKING') {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#000726',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        gap: '16px',
+        color: '#FFFFFF',
+        fontFamily: "'Outfit', sans-serif"
+      }}>
+        <div style={{
+          width: '52px',
+          height: '52px',
+          borderRadius: '12px',
+          background: 'linear-gradient(135deg, #051454 0%, #000b3d 100%)',
+          border: '2px solid #d6bc66',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 0 24px rgba(214, 188, 102, 0.35)'
+        }}>
+          <GraduationCap size={28} color="#d6bc66" />
+        </div>
+        <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: '700', letterSpacing: '0.08em' }}>
+          VERIFYING ACCESS PERMISSIONS...
+        </div>
+      </div>
+    );
+  }
+
+  // ── 2. PUBLIC VISITORS SEE ONLY THE UNDER CONSTRUCTION PAGE ────────────
+  if (previewStatus === 'UNAUTHORIZED') {
+    return (
+      <AcademyUnderConstruction
+        onBackToSports={onBackToSports}
+        onAccessGranted={handleAccessGranted}
+      />
+    );
+  }
+
+  // ── 3. AUTHORIZED CLIENT PREVIEW: FULL LMS ACCESSIBLE ──────────────────
   const showFullFooter = !AUTH_VIEWS.includes(view);
 
   return (
     <AcademyAuthProvider>
-      {/*
-       * This div IS the entire page.
-       * No sports Navbar, ScoreTicker, sports Footer or any other sports
-       * component is rendered here — they are all unmounted by App.jsx when
-       * activeCategory === 'ACADEMY'.
-       */}
       <div style={{
         minHeight: '100vh',
         backgroundColor: '#000726',
@@ -108,6 +197,61 @@ export const AcademyRouter = ({ onBackToSports }) => {
         display: 'flex',
         flexDirection: 'column',
       }}>
+        {/* ── DISCREET TOP PREVIEW BANNER (CLIENT PREVIEW ACTIVE) ──────── */}
+        <div style={{
+          backgroundColor: '#000b3d',
+          borderBottom: '1px solid rgba(214, 188, 102, 0.4)',
+          padding: '6px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          fontSize: '0.78rem',
+          color: '#CBD5E1',
+          zIndex: 1100,
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              display: 'inline-block',
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: '#10B981',
+              boxShadow: '0 0 8px #10B981'
+            }} />
+            <span style={{ fontWeight: '800', color: '#d6bc66', letterSpacing: '0.04em' }}>
+              PRIVATE ACADEMY PREVIEW
+            </span>
+            <span style={{ color: '#94A3B8' }}>· Client &amp; QA Inspection Mode</span>
+          </div>
+          <button
+            onClick={handleExitPreview}
+            style={{
+              background: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: '#FCA5A5',
+              padding: '3px 12px',
+              borderRadius: '4px',
+              fontSize: '0.72rem',
+              fontWeight: '800',
+              cursor: 'pointer',
+              letterSpacing: '0.03em',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = '#EF4444';
+              e.currentTarget.style.color = '#FFFFFF';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+              e.currentTarget.style.color = '#FCA5A5';
+            }}
+          >
+            Exit Preview
+          </button>
+        </div>
+
         {/* ── ACADEMY HEADER ─────────────────────────────────────────── */}
         <AcademyNavbar
           currentView={view}
@@ -211,7 +355,7 @@ export const AcademyRouter = ({ onBackToSports }) => {
             backgroundColor: '#000726',
           }}>
             <span style={{ color: '#64748B', fontSize: '0.75rem' }}>
-              © {new Date().getFullYear()} <span style={{ color: '#d6bc66', fontWeight: '800' }}>DX Academy</span> · Football Education & Professional Development
+              © {new Date().getFullYear()} <span style={{ color: '#d6bc66', fontWeight: '800' }}>DX Academy</span> · Football Education &amp; Professional Development
             </span>
             <button
               onClick={onBackToSports}

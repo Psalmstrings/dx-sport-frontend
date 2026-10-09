@@ -8,21 +8,44 @@ const API_BASE = import.meta.env.VITE_ELEARNING_API_URL ||
 
 const api = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Interceptor to attach student/admin LMS token
+// Interceptor to attach student/admin LMS token & preview authorization token
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('dx_academy_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  const previewToken = sessionStorage.getItem('dx_academy_preview_token') || localStorage.getItem('dx_academy_preview_token');
+  if (previewToken) {
+    config.headers['x-preview-token'] = previewToken;
+  }
   return config;
 }, (error) => Promise.reject(error));
 
 export const ElearningAPI = {
+  // --- Pre-launch Preview Access ---
+  verifyPreviewAccess: (accessCode) => api.post('/academy/preview-access', { accessCode }).then(r => {
+    if (r.data && r.data.token) {
+      sessionStorage.setItem('dx_academy_preview_token', r.data.token);
+      localStorage.setItem('dx_academy_preview_token', r.data.token);
+    }
+    return r.data;
+  }),
+  getPreviewStatus: () => api.get('/academy/preview-status').then(r => r.data),
+  exitPreviewAccess: () => api.post('/academy/preview-logout').then(r => {
+    sessionStorage.removeItem('dx_academy_preview_token');
+    localStorage.removeItem('dx_academy_preview_token');
+    return r.data;
+  }).catch(() => {
+    sessionStorage.removeItem('dx_academy_preview_token');
+    localStorage.removeItem('dx_academy_preview_token');
+    return { success: true };
+  }),
   // --- Auth ---
   register: (data) => api.post('/auth/register', data).then(r => r.data),
   login: (data) => api.post('/auth/login', data).then(r => r.data),
