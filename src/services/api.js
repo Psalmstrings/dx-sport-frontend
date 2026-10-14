@@ -93,7 +93,10 @@ export const API = {
   // --- MATCHES & SCORELINE ---
   async getMatches() {
     try {
-      const response = await api.get('/matches');
+      const response = await api.get('/matches', {
+        params: { _t: Date.now() },
+        headers: { 'Cache-Control': 'no-cache' }
+      });
       return response.data?.matches || response.data?.data || [];
     } catch (err) {
       console.error('[API Error] Fetch matches failed:', err.message);
@@ -112,13 +115,22 @@ export const API = {
 
   async updateScoreline(matchId, homeScore, awayScore, status, currentMinute) {
     try {
+      const parsedMin = typeof currentMinute === 'string'
+        ? parseInt(currentMinute.replace(/\D/g, ''), 10)
+        : Number(currentMinute);
+
       const response = await api.patch(`/matches/${matchId}/scoreline`, {
         homeScore: Number(homeScore),
         awayScore: Number(awayScore),
         status,
-        currentMinute: currentMinute ? Number(currentMinute) : undefined
+        currentMinute: isNaN(parsedMin) ? 0 : parsedMin
       });
-      return { success: true, match: response.data?.match, tableAutoUpdated: response.data?.tableAutoUpdated };
+      return {
+        success: true,
+        match: response.data?.match,
+        tableAutoUpdated: response.data?.tableAutoUpdated,
+        standings: response.data?.standings
+      };
     } catch (err) {
       return { success: false, error: err.response?.data?.message || err.message };
     }
@@ -250,8 +262,11 @@ export const API = {
 
   async getStandings(leagueId = 'current') {
     try {
-      const response = await api.get(`/table/${leagueId}`);
-      return response.data?.standings || [];
+      const response = await api.get(`/table/${leagueId}`, {
+        params: { _t: Date.now() },
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      return response.data?.standings || response.data?.table || [];
     } catch (err) {
       console.error('[API Error] Fetch standings failed:', err.message);
       return [];

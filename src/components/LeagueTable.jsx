@@ -31,11 +31,30 @@ export const LeagueTable = ({ standings = [], leagueName = '', onViewFullTable }
   if (standings.length === 0) {
     return (
       <div className="glass-panel" style={{ padding: '1.25rem', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
-          <Trophy size={20} color="#E6C657" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '800', textTransform: 'uppercase' }}>
-            {displayLeagueName}
-          </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+          <Trophy size={22} color="#E6C657" />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{
+                fontSize: '0.7rem',
+                fontWeight: '900',
+                background: 'rgba(214,188,102,0.2)',
+                border: '1px solid rgba(214,188,102,0.4)',
+                color: '#d6bc66',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                letterSpacing: '0.05em'
+              }}>
+                NPFL
+              </span>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: '800', textTransform: 'uppercase', margin: 0 }}>
+                STANDINGS
+              </h3>
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: '600', marginTop: '2px' }}>
+              Nigeria Premier Football League
+            </div>
+          </div>
         </div>
         <div style={{ padding: '2rem', textAlign: 'center', color: '#94A3B8', fontSize: '0.9rem' }}>
           No teams registered yet. Register teams in the Admin Portal to populate the standings.
@@ -57,11 +76,30 @@ export const LeagueTable = ({ standings = [], leagueName = '', onViewFullTable }
         flexWrap: 'wrap',
         gap: '0.5rem'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Trophy size={20} color="#E6C657" />
-          <h3 style={{ fontSize: '1.1rem', fontWeight: '800', textTransform: 'uppercase' }}>
-            {displayLeagueName}
-          </h3>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Trophy size={22} color="#E6C657" />
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{
+                fontSize: '0.7rem',
+                fontWeight: '900',
+                background: 'rgba(214,188,102,0.2)',
+                border: '1px solid rgba(214,188,102,0.4)',
+                color: '#d6bc66',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                letterSpacing: '0.05em'
+              }}>
+                NPFL
+              </span>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: '800', textTransform: 'uppercase', margin: 0, letterSpacing: '0.02em' }}>
+                STANDINGS
+              </h3>
+            </div>
+            <div style={{ fontSize: '0.72rem', color: '#94A3B8', fontWeight: '600', marginTop: '2px' }}>
+              Nigeria Premier Football League
+            </div>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{

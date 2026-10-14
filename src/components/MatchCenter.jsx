@@ -29,9 +29,9 @@ const LEAGUE_CODE_MAP = {
   'NPFL1':      'NPFL',
   'NGA.1':      'NPFL',
   // English
-  EPL:          'Premier League',
-  PL:           'Premier League',
-  'ENG.1':      'Premier League',
+  EPL:          'EPL',
+  PL:           'EPL',
+  'ENG.1':      'EPL',
   // Spanish
   LALIGA:       'La Liga',
   PD:           'La Liga',
@@ -63,17 +63,19 @@ const LEAGUE_CODE_MAP = {
 };
 
 const NAME_FRAGMENT_MAP = [
-  ['Nigeria Premier', 'NPFL'],
-  ['NPFL',            'NPFL'],
-  ['English Premier', 'Premier League'],
-  ['Premier League',  'Premier League'],
-  ['La Liga',         'La Liga'],
-  ['Serie A',         'Serie A'],
-  ['Bundesliga',      'Bundesliga'],
-  ['Ligue 1',         'Ligue 1'],
-  ['Champions League','Champions League'],
-  ['Europa League',   'Europa League'],
-  ['Conference League','Conference League'],
+  ['Nigeria Premier',     'NPFL'],
+  ['Nigerian Professional','NPFL'],
+  ['Nigerian Premier',    'NPFL'],
+  ['NPFL',                'NPFL'],
+  ['English Premier',     'EPL'],
+  ['Premier League',      'EPL'],
+  ['La Liga',             'La Liga'],
+  ['Serie A',             'Serie A'],
+  ['Bundesliga',          'Bundesliga'],
+  ['Ligue 1',             'Ligue 1'],
+  ['Champions League',    'Champions League'],
+  ['Europa League',       'Europa League'],
+  ['Conference League',   'Conference League'],
 ];
 
 const getLeagueDisplayName = (league) => {
@@ -81,25 +83,38 @@ const getLeagueDisplayName = (league) => {
 
   // Populated object from API: { name, code, shortName, … }
   if (typeof league === 'object') {
-    if (league.shortName) return league.shortName;
     const name = league.name || '';
     const code = (league.code || '').toUpperCase().trim();
+    const short = (league.shortName || '').toUpperCase().trim();
 
-    // 1. Name takes highest priority (authoritative for competition identity)
+    // 1. Authoritative check for NPFL
+    if (short === 'NPFL' || code === 'NPFL' || /nigeri/i.test(name) || /npfl/i.test(name)) {
+      return 'NPFL';
+    }
+
+    // 2. Authoritative check for English Premier League / EPL
+    if (short === 'EPL' || code === 'EPL' || /english premier/i.test(name)) {
+      return 'EPL';
+    }
+
+    if (league.shortName) return league.shortName;
+
+    // 3. Name takes priority
     for (const [fragment, label] of NAME_FRAGMENT_MAP) {
       if (name && name.toLowerCase().includes(fragment.toLowerCase())) return label;
     }
 
-    // 2. Code as fallback (e.g. league has no name yet)
+    // 4. Code fallback
     if (code && LEAGUE_CODE_MAP[code]) return LEAGUE_CODE_MAP[code];
 
-    // 3. Raw name as last resort
     return name || code || 'Football';
   }
 
-  // Raw string (un-populated): try code map then name fragments
+  // Raw string (un-populated)
   const str = String(league).trim();
   const strUpper = str.toUpperCase();
+  if (strUpper === 'NPFL' || /nigeri/i.test(str)) return 'NPFL';
+  if (strUpper === 'EPL' || /english premier/i.test(str)) return 'EPL';
   if (LEAGUE_CODE_MAP[strUpper]) return LEAGUE_CODE_MAP[strUpper];
   for (const [fragment, label] of NAME_FRAGMENT_MAP) {
     if (str.toLowerCase().includes(fragment.toLowerCase())) return label;

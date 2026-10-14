@@ -175,8 +175,9 @@ export const AdminPortal = ({ user, onRefreshData }) => {
       setGalleryList(safeMedia);
       setAllPosts(safePosts);
 
-      const activeLeague = safeLeagues.find((league) => league.isActive) || safeLeagues[0];
-      const defaultLeagueId = activeLeague?._id || '';
+      // Prioritize NPFL as the authoritative default for domestic match scheduling workflow
+      const npflLeague = safeLeagues.find((l) => l.code === 'NPFL' || l.shortName === 'NPFL' || (l.name && l.name.toLowerCase().includes('nigeria premier'))) || safeLeagues.find((league) => league.isActive) || safeLeagues[0];
+      const defaultLeagueId = npflLeague?._id || '';
       setActiveLeagueId(defaultLeagueId);
 
       setScheduleCompetitionId((curr) => {
@@ -787,7 +788,7 @@ export const AdminPortal = ({ user, onRefreshData }) => {
 
     if (res.success) {
       setMsg('🏟 Match Feature scheduled successfully!');
-      loadPortalData();
+      await loadPortalData();
       if (onRefreshData) onRefreshData();
     } else {
       setMsg(`❌ Error: ${res.error}`);
@@ -807,7 +808,7 @@ export const AdminPortal = ({ user, onRefreshData }) => {
 
     if (res.success) {
       setMsg(`✅ Scoreline updated! ${res.tableAutoUpdated ? 'League Table Automatically Recalculated!' : ''}`);
-      loadPortalData();
+      await loadPortalData();
       if (onRefreshData) onRefreshData();
     } else {
       setMsg(`❌ Error: ${res.error}`);
@@ -820,7 +821,7 @@ export const AdminPortal = ({ user, onRefreshData }) => {
     const res = await API.deleteMatch(id);
     if (res.success) {
       setMsg('✅ Match deleted and league table recalculated.');
-      loadPortalData();
+      await loadPortalData();
       if (onRefreshData) onRefreshData();
     } else {
       setMsg(`❌ Error: ${res.error}`);
@@ -833,7 +834,7 @@ export const AdminPortal = ({ user, onRefreshData }) => {
     const res = await API.cancelMatch(id);
     if (res.success) {
       setMsg(`✅ Fixture cancelled. League table updated.`);
-      loadPortalData();
+      await loadPortalData();
       if (onRefreshData) onRefreshData();
     } else {
       setMsg(`❌ Error: ${res.error}`);
@@ -2035,8 +2036,10 @@ export const AdminPortal = ({ user, onRefreshData }) => {
                 onChange={(e) => setMatchStatus(e.target.value)}
               >
                 <option value="LIVE">LIVE (In Progress)</option>
-                <option value="FINISHED">FINISHED (Full Time)</option>
-                <option value="UPCOMING">UPCOMING</option>
+                <option value="FINISHED">Completed / Full Time (FINISHED)</option>
+                <option value="UPCOMING">UPCOMING / SCHEDULED</option>
+                <option value="POSTPONED">POSTPONED</option>
+                <option value="CANCELLED">CANCELLED</option>
               </select>
             </div>
 
@@ -2183,6 +2186,32 @@ export const AdminPortal = ({ user, onRefreshData }) => {
 
                       {/* Action buttons */}
                       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                        <button
+                          onClick={() => {
+                            setSelectedMatchId(m._id);
+                            setHomeScore(Number(m.homeScore) || 0);
+                            setAwayScore(Number(m.awayScore) || 0);
+                            setMatchStatus(m.status || 'LIVE');
+                            setCurrentMinute(m.currentMinute || m.minute || "75'");
+                            setActiveTab('MATCHES');
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          title="Update score or status for this fixture"
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            background: 'rgba(214,188,102,0.15)',
+                            border: '1px solid rgba(214,188,102,0.4)',
+                            color: '#d6bc66',
+                            fontWeight: '800',
+                            fontSize: '0.78rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          <RefreshCw size={13} /> UPDATE SCORE
+                        </button>
                         {m.status !== 'CANCELLED' && (
                           <button
                             onClick={() => handleCancelMatch(m._id, matchLabel)}
