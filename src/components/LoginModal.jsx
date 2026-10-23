@@ -4,8 +4,7 @@ import { Mail, Lock, LogIn, X, Shield, AlertCircle } from 'lucide-react';
 import { API } from '../services/api';
 
 export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
-  const [email, setEmail] = useState('admin@elitesport.ng');
-  const [password, setPassword] = useState('admin123');
+  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -16,7 +15,7 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setLoading(true);
     setError('');
 
-    const res = await API.login(email, password);
+    const res = await API.login;
     setLoading(false);
 
     if (res.success) {
@@ -131,7 +130,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 <input 
                   type="email"
                   required
-                  value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="email"
                   style={{
@@ -163,7 +161,6 @@ export const LoginModal = ({ isOpen, onClose, onLoginSuccess }) => {
                 <input 
                   type="password"
                   required
-                  value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   style={{
