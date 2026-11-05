@@ -12,6 +12,7 @@ import AdminPortal from './components/AdminPortal';
 import DXLogo from './assets/DXLogo';
 import { API } from './services/api';
 import AcademyRouter from './academy/AcademyRouter';
+import analytics from './services/analyticsService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Determine initial layout from the current URL.
@@ -93,6 +94,27 @@ export function App() {
       loadData();
     }
   }, [activeCategory]);
+
+  // Automatic visitor pageview analytics tracking
+  useEffect(() => {
+    if (selectedPost) {
+      analytics.track(`/news/${selectedPost.slug}`, selectedPost.title || 'DX Sports Article');
+    } else if (activeCategory === 'ACADEMY') {
+      analytics.track(window.location.pathname || '/academy', 'DX Football Academy Portal');
+    } else if (activeCategory === 'HOME') {
+      analytics.track('/', 'DX SPORTS - Official Football Hub');
+    } else if (activeCategory === 'FIXTURES') {
+      analytics.track('/fixtures', 'DX Sports - Match Center & Fixtures');
+    } else if (activeCategory === 'TABLE') {
+      analytics.track('/table', 'DX Sports - Standings & Tables');
+    } else if (activeCategory === 'MEDIA') {
+      analytics.track('/media', 'DX Sports - Media & Highlights');
+    } else if (activeCategory === 'NEWS') {
+      analytics.track('/news', 'DX Sports - Latest Football News');
+    } else {
+      analytics.track(window.location.pathname || '/', document.title || 'DX Sports');
+    }
+  }, [activeCategory, selectedPost]);
 
   // Listen to browser back/forward so the layout switches correctly
   useEffect(() => {

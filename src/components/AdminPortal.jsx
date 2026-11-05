@@ -3,10 +3,11 @@ import {
   PlusCircle, RefreshCw, ShieldCheck, Upload, Image as ImageIcon, 
   CheckCircle, UserPlus, Users, Activity, Trash2, Shield, Calendar,
   AlertCircle, Edit2, FileText, X, Save, Trophy, Layers, Filter, Check,
-  Globe, ToggleLeft, ToggleRight, Search
+  Globe, ToggleLeft, ToggleRight, Search, BarChart2, TrendingUp
 } from 'lucide-react';
 import { API } from '../services/api';
 import { getImageUrl } from '../utils/imageUrl';
+import VisitorAnalytics from './VisitorAnalytics';
 
 
 const escapeHtml = (value = '') =>
@@ -1075,6 +1076,24 @@ export const AdminPortal = ({ user, onRefreshData }) => {
 
           {isAdmin && (
             <>
+              <button
+                onClick={() => setActiveTab('ANALYTICS')}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '6px',
+                  fontWeight: '800',
+                  fontSize: '0.78rem',
+                  background: activeTab === 'ANALYTICS' ? 'var(--gold-gray-yellow)' : '#000b3d',
+                  color: activeTab === 'ANALYTICS' ? '#000b3d' : '#FFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+              >
+                <BarChart2 size={13} />
+                VISITOR ANALYTICS
+              </button>
+
               <button
                 onClick={() => setActiveTab('USERS')}
                 style={{
@@ -2949,6 +2968,11 @@ export const AdminPortal = ({ user, onRefreshData }) => {
             )}
           </div>
         </div>
+      )}
+
+      {/* TAB: VISITOR ANALYTICS (ADMIN ONLY) */}
+      {activeTab === 'ANALYTICS' && isAdmin && (
+        <VisitorAnalytics />
       )}
 
       {/* TAB 7: MANAGE ALL POSTS */}

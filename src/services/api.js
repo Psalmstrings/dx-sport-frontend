@@ -407,5 +407,34 @@ export const API = {
       reader.onloadend = () => resolve({ success: true, url: reader.result });
       reader.readAsDataURL(file);
     });
+  },
+
+  // --- VISITOR ANALYTICS ---
+  async trackVisit(data) {
+    try {
+      const response = await api.post('/analytics/track', data);
+      return response.data;
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  },
+
+  async getAnalyticsDashboard(period = 'week') {
+    try {
+      const response = await api.get(`/analytics/dashboard?period=${encodeURIComponent(period)}`);
+      return response.data;
+    } catch (err) {
+      console.error('[API Error] Fetch analytics failed:', err.message);
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
+  },
+
+  async seedAnalyticsData(period = 'week') {
+    try {
+      const response = await api.post(`/analytics/seed?period=${encodeURIComponent(period)}`);
+      return response.data;
+    } catch (err) {
+      return { success: false, error: err.response?.data?.message || err.message };
+    }
   }
 };
