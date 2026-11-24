@@ -104,6 +104,16 @@ export const API = {
     }
   },
 
+  async getMatchById(id) {
+    try {
+      const response = await api.get(`/matches/${id}`);
+      return response.data?.match || response.data?.data || null;
+    } catch (err) {
+      console.error('[API Error] Fetch match by id failed:', err.message);
+      return null;
+    }
+  },
+
   async createMatch(matchData) {
     try {
       const response = await api.post('/matches', matchData);

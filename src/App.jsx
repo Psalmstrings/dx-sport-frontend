@@ -7,6 +7,7 @@ import MatchCenter from './components/MatchCenter';
 import LeagueTable from './components/LeagueTable';
 import MediaGallery from './components/MediaGallery';
 import PostDetailModal from './components/PostDetailModal';
+import MatchDetailModal from './components/MatchDetailModal';
 import LoginModal from './components/LoginModal';
 import AdminPortal from './components/AdminPortal';
 import DXLogo from './assets/DXLogo';
@@ -47,6 +48,7 @@ export function App() {
   const [standings, setStandings] = useState([]);
   const [mediaItems, setMediaItems] = useState([]);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [selectedMatch, setSelectedMatch] = useState(null);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -99,6 +101,23 @@ export function App() {
         });
       }
       window.__DX_INITIAL_SLUG__ = null;
+    }
+
+    // Open a specific match if a shared /match/:id or /fixtures/:id URL was used
+    const initialMatchId = (
+      typeof window !== 'undefined' && (window.location.pathname.startsWith('/match/') || window.location.pathname.startsWith('/fixtures/'))
+        ? window.location.pathname.replace(/^\/(match|fixtures)\//, '').split('/')[0]
+        : null
+    );
+    if (initialMatchId && !selectedMatch) {
+      const foundMatch = fetchedMatches.find(m => String(m._id) === String(initialMatchId));
+      if (foundMatch) {
+        setSelectedMatch(foundMatch);
+      } else {
+        API.getMatchById(initialMatchId).then(m => {
+          if (m) setSelectedMatch(m);
+        });
+      }
     }
   };
 
@@ -167,6 +186,25 @@ export function App() {
     }
   };
 
+  // Match fixture modal helpers
+  const handleMatchSelect = (match) => {
+    setSelectedMatch(match);
+    if (match && match._id) {
+      const home = typeof match.homeTeam === 'object' ? match.homeTeam?.name : match.homeTeam;
+      const away = typeof match.awayTeam === 'object' ? match.awayTeam?.name : match.awayTeam;
+      const title = `${home || 'Home'} vs ${away || 'Away'} | DX SPORTS`;
+      window.history.pushState({ matchId: match._id }, title, `/match/${match._id}`);
+    }
+  };
+  const handleMatchClose = () => {
+    setSelectedMatch(null);
+    if (activeCategory === 'FIXTURES') {
+      window.history.pushState({}, 'DX SPORTS - Fixtures', '/fixtures');
+    } else {
+      window.history.pushState({}, 'DX SPORTS', '/');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('dx_auth_token');
     localStorage.removeItem('dx_user');
@@ -230,7 +268,7 @@ export function App() {
       {/* 2. Live Scores Ticker */}
       <ScoreTicker
         matches={matches}
-        onMatchSelect={(m) => console.log('Selected match', m)}
+        onMatchSelect={handleMatchSelect}
       />
 
       {/* 3. Main Content */}
@@ -247,7 +285,7 @@ export function App() {
         {activeCategory === 'MEDIA' ? (
           <MediaGallery mediaItems={mediaItems} />
         ) : activeCategory === 'FIXTURES' ? (
-          <MatchCenter matches={matches} isHome={false} />
+          <MatchCenter matches={matches} isHome={false} onSelectMatch={handleMatchSelect} />
         ) : activeCategory === 'TABLE' ? (
           <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
             <LeagueTable standings={standings} />
@@ -272,6 +310,7 @@ export function App() {
             <MatchCenter
               matches={matches}
               isHome={true}
+              onSelectMatch={handleMatchSelect}
               onViewMore={() => navigateTo('FIXTURES')}
             />
             <div className="content-grid">
@@ -391,6 +430,9 @@ export function App() {
       {/* 5. Modals (sports site only) */}
       {selectedPost && (
         <PostDetailModal post={selectedPost} onClose={handlePostClose} />
+      )}
+      {selectedMatch && (
+        <MatchDetailModal match={selectedMatch} onClose={handleMatchClose} />
       )}
       {isLoginOpen && (
         <LoginModal
