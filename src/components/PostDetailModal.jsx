@@ -75,7 +75,7 @@ export const PostDetailModal = ({ post, onClose }) => {
 
   if (!post) return null;
 
-  const currentUrl = window.location.href;
+  const currentUrl = post.slug ? `${window.location.origin}/news/${post.slug}` : window.location.href;
   const shareTitle = encodeURIComponent(post.title);
   const shareUrlEncoded = encodeURIComponent(currentUrl);
 

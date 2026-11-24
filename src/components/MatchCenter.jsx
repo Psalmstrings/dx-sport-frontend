@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, Play, Bell, Shield, Activity, ArrowRight, Trophy } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Play, Bell, Shield, Activity, ArrowRight, Trophy, Share2 } from 'lucide-react';
 
 // Resolve a logo URL: if it is a relative /uploads/... path, prepend the API origin.
 // Absolute http(s) URLs and base64 data URIs are returned unchanged.
@@ -368,31 +368,67 @@ export const MatchCenter = ({ matches = [], onSelectMatch, isHome = false, onVie
           )}
         </div>
 
-        {/* Action Button */}
-        <button
-          onClick={() => onSelectMatch && onSelectMatch(item)}
-          style={{
-            width: '100%',
-            padding: '12px',
-            borderRadius: '8px',
-            fontWeight: '900',
-            fontSize: '0.85rem',
-            letterSpacing: '0.05em',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            background: isUpcoming ? 'transparent' : '#000b3d',
-            color: '#FFF',
-            border: isUpcoming
-              ? '1px solid rgba(255,255,255,0.2)'
-              : '1px solid rgba(214, 188, 102, 0.4)',
-            cursor: 'pointer'
-          }}
-        >
-          {isUpcoming ? <Bell size={16} color="#d6bc66" /> : <Play size={16} color="#FFFFFF" />}
-          <span>{item.action || (isUpcoming ? 'UPCOMING' : isFinished ? 'FULL TIME' : 'WATCH LIVE')}</span>
-        </button>
+        {/* Action & Share Buttons */}
+        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+          <button
+            onClick={() => onSelectMatch && onSelectMatch(item)}
+            style={{
+              flex: 1,
+              padding: '12px',
+              borderRadius: '8px',
+              fontWeight: '900',
+              fontSize: '0.85rem',
+              letterSpacing: '0.05em',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              background: isUpcoming ? 'transparent' : '#000b3d',
+              color: '#FFF',
+              border: isUpcoming
+                ? '1px solid rgba(255,255,255,0.2)'
+                : '1px solid rgba(214, 188, 102, 0.4)',
+              cursor: 'pointer'
+            }}
+          >
+            {isUpcoming ? <Bell size={16} color="#d6bc66" /> : <Play size={16} color="#FFFFFF" />}
+            <span>{item.action || (isUpcoming ? 'UPCOMING' : isFinished ? 'FULL TIME' : 'WATCH LIVE')}</span>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const matchUrl = `${window.location.origin}/match/${item._id}`;
+              const matchTitle = `${homeTeam.name} vs ${awayTeam.name} | DX SPORTS`;
+              const matchSummary = `${homeTeam.name} vs ${awayTeam.name} (${leagueName}) on DX SPORTS. Follow live scores & updates.`;
+              if (navigator.share) {
+                navigator.share({ title: matchTitle, text: matchSummary, url: matchUrl }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(matchUrl).then(() => {
+                  alert(`Match fixture link copied for social sharing!\n\n${matchUrl}`);
+                });
+              }
+            }}
+            title="Share this match fixture link"
+            style={{
+              padding: '12px 14px',
+              borderRadius: '8px',
+              background: 'rgba(214, 188, 102, 0.12)',
+              border: '1px solid rgba(214, 188, 102, 0.35)',
+              color: '#d6bc66',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontSize: '0.78rem',
+              fontWeight: '800'
+            }}
+          >
+            <Share2 size={16} />
+            <span>SHARE</span>
+          </button>
+        </div>
       </div>
     );
   };

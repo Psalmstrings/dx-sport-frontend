@@ -29,11 +29,16 @@ export const Navbar = ({ activeCategory, setActiveCategory, onOpenLogin, user, o
   const handleNavClick = (catId) => {
     setActiveCategory(catId);
     setMobileMenuOpen(false);
-    if (catId === 'ACADEMY') {
-      window.history.pushState({}, '', '/academy');
-    } else if (window.location.pathname.startsWith('/academy') || window.location.pathname.startsWith('/verify-certificate')) {
-      window.history.pushState({}, 'DX SPORTS', '/');
-    }
+    const pathMap = {
+      HOME: '/',
+      NEWS: '/news',
+      FIXTURES: '/fixtures',
+      TABLE: '/table',
+      MEDIA: '/media',
+      ACADEMY: '/academy'
+    };
+    const targetPath = pathMap[catId] || '/';
+    window.history.pushState({}, `DX SPORTS - ${catId}`, targetPath);
   };
 
   return (

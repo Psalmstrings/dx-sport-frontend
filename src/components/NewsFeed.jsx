@@ -155,11 +155,13 @@ export const NewsFeed = ({ posts = [], activeCategory, onPostSelect, isHome = fa
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const shareUrl = window.location.href;
+                    const shareUrl = post.slug ? `${window.location.origin}/news/${post.slug}` : window.location.href;
                     if (navigator.share) {
-                      navigator.share({ title: post.title, text: post.summary, url: shareUrl }).catch(() => {});
+                      navigator.share({ title: post.title, text: post.summary || post.title, url: shareUrl }).catch(() => {});
                     } else {
-                      navigator.clipboard.writeText(shareUrl).then(() => alert('Article link copied to clipboard!'));
+                      navigator.clipboard.writeText(shareUrl).then(() => {
+                        alert(`News article link copied for social sharing!\n\n${shareUrl}`);
+                      });
                     }
                   }}
                   title="Share Article"

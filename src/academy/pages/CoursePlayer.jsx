@@ -13,7 +13,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
-  Play
+  Play,
+  Music,
+  Image as ImageIcon,
+  Presentation,
+  Paperclip
 } from 'lucide-react';
 
 export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
@@ -258,6 +262,12 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                           {lesson.type === 'video' || lesson.type === 'external_video' ? (
                             <Video size={14} color={isSelected ? '#000b3d' : '#d6bc66'} />
+                          ) : lesson.type === 'audio' ? (
+                            <Music size={14} color={isSelected ? '#000b3d' : '#d6bc66'} />
+                          ) : lesson.type === 'picture' ? (
+                            <ImageIcon size={14} color={isSelected ? '#000b3d' : '#d6bc66'} />
+                          ) : lesson.type === 'slides' ? (
+                            <Presentation size={14} color={isSelected ? '#000b3d' : '#d6bc66'} />
                           ) : (
                             <FileText size={14} color={isSelected ? '#000b3d' : '#d6bc66'} />
                           )}
@@ -301,7 +311,7 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                 </div>
               </div>
 
-              {/* Video Embed Player */}
+              {/* Video Embed Player (YouTube/Vimeo) */}
               {(activeLessonDetail.type === 'video' || activeLessonDetail.type === 'external_video') && activeLessonDetail.mediaUrl && (
                 <div style={{
                   position: 'relative',
@@ -318,6 +328,85 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                  />
+                </div>
+              )}
+
+              {/* Uploaded Video File Player */}
+              {activeLessonDetail.type === 'video' && activeLessonDetail.filePath && !activeLessonDetail.mediaUrl && (
+                <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(214,188,102,0.3)', background: '#000' }}>
+                  <video
+                    controls
+                    src={ElearningAPI.downloadMaterial(activeLessonDetail._id)}
+                    style={{ width: '100%', maxHeight: '520px', display: 'block' }}
+                  >
+                    Your browser does not support HTML5 video.
+                  </video>
+                </div>
+              )}
+
+              {/* Audio Material Player */}
+              {(activeLessonDetail.type === 'audio' || /\.(mp3|wav|m4a|ogg|aac)$/i.test(activeLessonDetail.fileName || '')) && activeLessonDetail.filePath && (
+                <div style={{
+                  background: 'rgba(5, 20, 84, 0.7)',
+                  border: '1px solid #d6bc66',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Music size={24} color="#d6bc66" />
+                    <div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: '800', color: '#FFF' }}>
+                        Audio Course Lecture / Material
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                        {activeLessonDetail.fileName || 'Audio Track'}
+                      </div>
+                    </div>
+                  </div>
+                  <audio
+                    controls
+                    src={ElearningAPI.downloadMaterial(activeLessonDetail._id)}
+                    style={{ width: '100%' }}
+                  >
+                    Your browser does not support audio playback.
+                  </audio>
+                </div>
+              )}
+
+              {/* Picture / Diagram Viewer */}
+              {(activeLessonDetail.type === 'picture' || /\.(png|jpe?g|webp|gif|svg)$/i.test(activeLessonDetail.fileName || '')) && activeLessonDetail.filePath && (
+                <div style={{
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(214,188,102,0.3)',
+                  background: 'rgba(0,0,0,0.5)',
+                  textAlign: 'center',
+                  padding: '1rem'
+                }}>
+                  <img
+                    src={ElearningAPI.downloadMaterial(activeLessonDetail._id)}
+                    alt={activeLessonDetail.title}
+                    style={{ maxWidth: '100%', maxHeight: '540px', objectFit: 'contain', borderRadius: '8px' }}
+                  />
+                </div>
+              )}
+
+              {/* Embedded PDF Viewer */}
+              {activeLessonDetail.type === 'pdf' && activeLessonDetail.filePath && (
+                <div style={{
+                  borderRadius: '12px',
+                  overflow: 'hidden',
+                  border: '1px solid rgba(214,188,102,0.3)',
+                  height: '550px'
+                }}>
+                  <iframe
+                    src={ElearningAPI.downloadMaterial(activeLessonDetail._id)}
+                    title={activeLessonDetail.title}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
                   />
                 </div>
               )}
@@ -342,7 +431,7 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                 />
               )}
 
-              {/* Attached Material File Download (PDF / Notes) */}
+              {/* Attached Material File Download (Audio, Video, Picture, PDF, DOCS, Slides, Other) */}
               {activeLessonDetail.filePath && (
                 <div style={{
                   background: 'rgba(5, 20, 84, 0.7)',
@@ -356,11 +445,25 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                   gap: '1rem'
                 }}>
                   <div>
-                    <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#FFF' }}>
-                      Official Course Material Note
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{
+                        fontSize: '0.65rem',
+                        fontWeight: '900',
+                        color: '#000b3d',
+                        background: '#d6bc66',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        textTransform: 'uppercase'
+                      }}>
+                        {activeLessonDetail.type || 'DOCUMENT'}
+                      </span>
+                      <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#FFF' }}>
+                        Course Material Attachment
+                      </div>
                     </div>
                     <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
                       {activeLessonDetail.fileName || 'Downloadable Course Document'}
+                      {activeLessonDetail.fileSize ? ` • ${(activeLessonDetail.fileSize / (1024 * 1024)).toFixed(2)} MB` : ''}
                     </div>
                   </div>
                   <a
@@ -368,7 +471,7 @@ export const CoursePlayer = ({ slug, onBack, onNavigate }) => {
                     target="_blank"
                     rel="noreferrer"
                     className="btn-gold"
-                    style={{ padding: '8px 16px', fontSize: '0.8rem' }}
+                    style={{ padding: '8px 16px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                   >
                     <Download size={14} />
                     <span>DOWNLOAD FILE</span>

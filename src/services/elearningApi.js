@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // Base URL for the separate E-Learning Backend
-const API_BASE = import.meta.env.VITE_ELEARNING_API_URL ||
-  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5001/api'
-    : 'https://dx-elearning-backend.onrender.com/api');
+const API_BASE = import.meta.env.VITE_ELEARNING_API_URL || 'http://localhost:5001/api'
+  // (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    
+  //  );
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -92,6 +92,7 @@ export const ElearningAPI = {
   updateProgram: (id, data) => api.put(`/programs/admin/${id}`, data).then(r => r.data),
   deleteProgram: (id) => api.delete(`/programs/admin/${id}`).then(r => r.data),
 
+  getAdminProgramModules: (programId) => api.get(`/modules/admin/program/${programId}`).then(r => r.data),
   createModule: (data) => api.post('/modules', data).then(r => r.data),
   updateModule: (id, data) => api.put(`/modules/${id}`, data).then(r => r.data),
   deleteModule: (id) => api.delete(`/modules/${id}`).then(r => r.data),

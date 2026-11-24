@@ -25,6 +25,15 @@ const getInitialCategory = () => {
     if (p.startsWith('/academy') || p.startsWith('/verify-certificate')) {
       return 'ACADEMY';
     }
+    if (window.__DX_INITIAL_ROUTE__) {
+      if (window.__DX_INITIAL_ROUTE__.type === 'FIXTURE' || window.__DX_INITIAL_ROUTE__.type === 'FIXTURES') return 'FIXTURES';
+      if (window.__DX_INITIAL_ROUTE__.type === 'TABLE') return 'TABLE';
+      if (window.__DX_INITIAL_ROUTE__.type === 'NEWS') return 'NEWS';
+    }
+    if (p.startsWith('/fixtures') || p.startsWith('/match')) return 'FIXTURES';
+    if (p.startsWith('/table') || p.startsWith('/standings')) return 'TABLE';
+    if (p.startsWith('/news')) return 'NEWS';
+    if (p.startsWith('/media')) return 'MEDIA';
   }
   return 'HOME';
 };
@@ -75,7 +84,11 @@ export function App() {
     setLoading(false);
 
     // Open a specific article if a shared /news/:slug URL was used
-    const initialSlug = window.__DX_INITIAL_SLUG__;
+    const initialSlug = window.__DX_INITIAL_SLUG__ || (
+      typeof window !== 'undefined' && window.location.pathname.startsWith('/news/')
+        ? window.location.pathname.replace('/news/', '').split('/')[0]
+        : null
+    );
     if (initialSlug && !selectedPost) {
       const found = fetchedPosts.find(p => p.slug === initialSlug);
       if (found) {
@@ -122,7 +135,15 @@ export function App() {
       const p = window.location.pathname;
       if (p.startsWith('/academy') || p.startsWith('/verify-certificate')) {
         setActiveCategory('ACADEMY');
-      } else if (activeCategory === 'ACADEMY') {
+      } else if (p.startsWith('/fixtures') || p.startsWith('/match')) {
+        setActiveCategory('FIXTURES');
+      } else if (p.startsWith('/table') || p.startsWith('/standings')) {
+        setActiveCategory('TABLE');
+      } else if (p.startsWith('/news')) {
+        setActiveCategory('NEWS');
+      } else if (p.startsWith('/media')) {
+        setActiveCategory('MEDIA');
+      } else {
         setActiveCategory('HOME');
       }
     };
@@ -139,7 +160,11 @@ export function App() {
   };
   const handlePostClose = () => {
     setSelectedPost(null);
-    window.history.pushState({}, 'DX SPORTS', '/');
+    if (activeCategory === 'NEWS') {
+      window.history.pushState({}, 'DX SPORTS - News', '/news');
+    } else {
+      window.history.pushState({}, 'DX SPORTS', '/');
+    }
   };
 
   const handleLogout = () => {
@@ -150,6 +175,16 @@ export function App() {
 
   const navigateTo = (category) => {
     setActiveCategory(category);
+    const pathMap = {
+      HOME: '/',
+      NEWS: '/news',
+      FIXTURES: '/fixtures',
+      TABLE: '/table',
+      MEDIA: '/media',
+      ACADEMY: '/academy'
+    };
+    const targetPath = pathMap[category] || '/';
+    window.history.pushState({}, `DX SPORTS - ${category}`, targetPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy, Shield } from 'lucide-react';
+import { Trophy, Shield, Share2 } from 'lucide-react';
 
 // Resolve relative logo URLs (same helper as MatchCenter)
 const resolveLogoUrl = (url) => {
@@ -125,6 +125,35 @@ export const LeagueTable = ({ standings = [], leagueName = '', onViewFullTable }
               <span>FULL TABLE →</span>
             </button>
           )}
+          <button
+            onClick={() => {
+              const tableUrl = `${window.location.origin}/table`;
+              if (navigator.share) {
+                navigator.share({
+                  title: 'Official League Table & Standings | DX SPORTS',
+                  text: 'Check the official NPFL league table, points, goal difference and form on DX SPORTS.',
+                  url: tableUrl
+                }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(tableUrl).then(() => {
+                  alert(`League table link copied for social sharing!\n\n${tableUrl}`);
+                });
+              }
+            }}
+            className="btn-outline-gold"
+            style={{
+              padding: '3px 10px',
+              fontSize: '0.72rem',
+              minHeight: '26px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Share standings table link"
+          >
+            <Share2 size={12} />
+            <span>SHARE</span>
+          </button>
         </div>
       </div>
 

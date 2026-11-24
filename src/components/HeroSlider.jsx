@@ -112,11 +112,13 @@ export const HeroSlider = ({ posts = [], onPostSelect }) => {
             onClick={() => {
               const currentPost = heroPosts[currentIndex];
               if (!currentPost) return;
-              const shareUrl = window.location.href;
+              const shareUrl = currentPost.slug ? `${window.location.origin}/news/${currentPost.slug}` : window.location.href;
               if (navigator.share) {
-                navigator.share({ title: currentPost.title, text: currentPost.summary, url: shareUrl }).catch(() => {});
+                navigator.share({ title: currentPost.title, text: currentPost.summary || currentPost.title, url: shareUrl }).catch(() => {});
               } else {
-                navigator.clipboard.writeText(shareUrl).then(() => alert('Headline link copied to clipboard!'));
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                  alert(`News article link copied for social sharing!\n\n${shareUrl}`);
+                });
               }
             }}
             className="btn-outline-gold"

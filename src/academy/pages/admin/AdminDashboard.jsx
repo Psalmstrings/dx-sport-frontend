@@ -18,7 +18,19 @@ import {
   RefreshCw,
   Eye,
   AlertTriangle,
-  Download
+  Download,
+  Upload,
+  Trash2,
+  Edit2,
+  Video,
+  Music,
+  Image as ImageIcon,
+  Presentation,
+  Layers,
+  Paperclip,
+  ChevronDown,
+  ChevronUp,
+  FolderPlus
 } from 'lucide-react';
 
 export const AdminDashboard = ({ onNavigate }) => {
@@ -68,6 +80,29 @@ export const AdminDashboard = ({ onNavigate }) => {
     accountNumber: '',
     instructions: ''
   });
+
+  // Course & Material Management States
+  const [selectedProgramForCourses, setSelectedProgramForCourses] = useState(null);
+  const [programCourses, setProgramCourses] = useState([]);
+  const [loadingCourses, setLoadingCourses] = useState(false);
+
+  // Create / Edit Course Modal
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseFormData, setCourseFormData] = useState({ id: null, title: '', description: '', order: 1 });
+
+  // Upload Material Modal
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [materialTargetCourse, setMaterialTargetCourse] = useState(null);
+  const [materialFormData, setMaterialFormData] = useState({
+    title: '',
+    description: '',
+    type: 'document',
+    mediaUrl: '',
+    durationMinutes: 15,
+    isRequired: true,
+    file: null
+  });
+  const [uploadingMaterial, setUploadingMaterial] = useState(false);
 
   const loadAllAdminData = () => {
     setLoading(true);
@@ -192,6 +227,153 @@ export const AdminDashboard = ({ onNavigate }) => {
       setFeedback({ type: 'error', text: err.response?.data?.message || 'Program creation failed' });
     } finally {
       setProcessingAction(false);
+    }
+  };
+
+  // --- Course & Material Management Actions ---
+  const openCourseManager = async (prog) => {
+    setSelectedProgramForCourses(prog);
+    setLoadingCourses(true);
+    try {
+      const res = await ElearningAPI.getAdminProgramModules(prog._id);
+      if (res && res.success) {
+        setProgramCourses(res.modules || []);
+      }
+    } catch (err) {
+      console.error('Error fetching courses for program:', err);
+      setFeedback({ type: 'error', text: 'Failed to load courses for this program.' });
+    } finally {
+      setLoadingCourses(false);
+    }
+  };
+
+  const openCreateCourseModal = () => {
+    const nextOrder = (programCourses.length || 0) + 1;
+    setCourseFormData({ id: null, title: '', description: '', order: nextOrder });
+    setShowCourseModal(true);
+  };
+
+  const openEditCourseModal = (course) => {
+    setCourseFormData({
+      id: course._id,
+      title: course.title,
+      description: course.description || '',
+      order: course.order || 1
+    });
+    setShowCourseModal(true);
+  };
+
+  const handleSaveCourse = async (e) => {
+    e.preventDefault();
+    if (!selectedProgramForCourses || !courseFormData.title.trim()) return;
+    setProcessingAction(true);
+    try {
+      if (courseFormData.id) {
+        await ElearningAPI.updateModule(courseFormData.id, {
+          title: courseFormData.title.trim(),
+          description: courseFormData.description,
+          order: Number(courseFormData.order) || 1
+        });
+        setFeedback({ type: 'success', text: 'Course updated successfully.' });
+      } else {
+        await ElearningAPI.createModule({
+          programId: selectedProgramForCourses._id,
+          title: courseFormData.title.trim(),
+          description: courseFormData.description,
+          order: Number(courseFormData.order) || 1
+        });
+        setFeedback({ type: 'success', text: `Course "${courseFormData.title}" created under ${selectedProgramForCourses.title}.` });
+      }
+      setShowCourseModal(false);
+      setCourseFormData({ id: null, title: '', description: '', order: 1 });
+      const res = await ElearningAPI.getAdminProgramModules(selectedProgramForCourses._id);
+      if (res && res.success) setProgramCourses(res.modules || []);
+    } catch (err) {
+      console.error('Error saving course:', err);
+      setFeedback({ type: 'error', text: err.response?.data?.message || 'Failed to save course.' });
+    } finally {
+      setProcessingAction(false);
+    }
+  };
+
+  const handleDeleteCourse = async (courseId) => {
+    if (!window.confirm('Are you sure you want to delete this course and all its uploaded materials? This action cannot be undone.')) return;
+    try {
+      await ElearningAPI.deleteModule(courseId);
+      setFeedback({ type: 'success', text: 'Course and attached materials deleted successfully.' });
+      const res = await ElearningAPI.getAdminProgramModules(selectedProgramForCourses._id);
+      if (res && res.success) setProgramCourses(res.modules || []);
+    } catch (err) {
+      console.error('Error deleting course:', err);
+      setFeedback({ type: 'error', text: 'Failed to delete course.' });
+    }
+  };
+
+  const openUploadMaterialModal = (course) => {
+    setMaterialTargetCourse(course);
+    setMaterialFormData({
+      title: '',
+      description: '',
+      type: 'document',
+      mediaUrl: '',
+      durationMinutes: 15,
+      isRequired: true,
+      file: null
+    });
+    setShowMaterialModal(true);
+  };
+
+  const handleUploadMaterialSubmit = async (e) => {
+    e.preventDefault();
+    if (!materialTargetCourse || !selectedProgramForCourses || !materialFormData.title.trim()) {
+      alert('Please provide a material title and ensure course is selected.');
+      return;
+    }
+
+    setUploadingMaterial(true);
+    try {
+      const formData = new FormData();
+      formData.append('moduleId', materialTargetCourse._id);
+      formData.append('programId', selectedProgramForCourses._id);
+      formData.append('title', materialFormData.title.trim());
+      formData.append('description', materialFormData.description || '');
+      formData.append('type', materialFormData.type);
+      formData.append('durationMinutes', String(materialFormData.durationMinutes || 15));
+      formData.append('isRequired', String(materialFormData.isRequired));
+      if (materialFormData.mediaUrl) {
+        formData.append('mediaUrl', materialFormData.mediaUrl.trim());
+      }
+      if (materialFormData.file) {
+        formData.append('file', materialFormData.file);
+      }
+
+      const res = await ElearningAPI.createLesson(formData);
+      if (res.success) {
+        setFeedback({ type: 'success', text: `Material "${materialFormData.title}" uploaded successfully to course!` });
+        setShowMaterialModal(false);
+        const fresh = await ElearningAPI.getAdminProgramModules(selectedProgramForCourses._id);
+        if (fresh && fresh.success) setProgramCourses(fresh.modules || []);
+      }
+    } catch (err) {
+      console.error('Error uploading course material:', err);
+      setFeedback({ type: 'error', text: err.response?.data?.message || 'Failed to upload course material.' });
+    } finally {
+      setUploadingMaterial(false);
+    }
+  };
+
+  const handleDeleteMaterial = async (lessonId) => {
+    if (!window.confirm('Are you sure you want to delete this course material file?')) return;
+    try {
+      await ElearningAPI.deleteLesson(lessonId);
+      setFeedback({ type: 'success', text: 'Course material deleted.' });
+      if (selectedProgramForCourses) {
+        const fresh = await ElearningAPI.getAdminProgramModules(selectedProgramForCourses._id);
+        if (fresh && fresh.success) setProgramCourses(fresh.modules || []);
+      }
+    } catch (err) {
+      console.error('Error deleting material:', err);
+      setFeedback({ type: 'error', text: 'Failed to delete material.' });
     }
   };
 
@@ -648,17 +830,668 @@ export const AdminDashboard = ({ onNavigate }) => {
 
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button
-                    onClick={() => {
-                      alert(`To edit modules and lessons for "${prog.title}", use the lesson creation API or future visual builder.`);
-                    }}
-                    className="btn-outline-gold"
-                    style={{ flex: 1, padding: '6px 12px', fontSize: '0.75rem', justifyContent: 'center' }}
+                    onClick={() => openCourseManager(prog)}
+                    className="btn-gold"
+                    style={{ flex: 1, padding: '8px 14px', fontSize: '0.78rem', justifyContent: 'center' }}
                   >
-                    <span>Curriculum ({prog.slug})</span>
+                    <Layers size={14} />
+                    <span>MANAGE COURSES &amp; MATERIALS</span>
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Course & Material Manager for Selected Program */}
+      {selectedProgramForCourses && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.85)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3100,
+          padding: '1rem'
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: '900px',
+            width: '100%',
+            maxHeight: '90vh',
+            display: 'flex',
+            flexDirection: 'column',
+            borderRadius: '16px',
+            border: '1px solid #d6bc66',
+            overflow: 'hidden'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'rgba(5, 20, 84, 0.85)'
+            }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{
+                    fontSize: '0.7rem',
+                    fontWeight: '900',
+                    color: '#000b3d',
+                    background: '#d6bc66',
+                    padding: '2px 8px',
+                    borderRadius: '10px',
+                    textTransform: 'uppercase'
+                  }}>
+                    {selectedProgramForCourses.level}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>
+                    Tuition: {selectedProgramForCourses.currency} {selectedProgramForCourses.price?.toLocaleString()}
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: '900', color: '#FFF', margin: '4px 0 0 0' }}>
+                  {selectedProgramForCourses.title}
+                </h3>
+                <div style={{ fontSize: '0.75rem', color: '#d6bc66', marginTop: '2px' }}>
+                  Manage courses (modules) and uploaded course materials (Audios, Videos, Pictures, PDF, DOCS, Slides &amp; more)
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedProgramForCourses(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#94A3B8',
+                  cursor: 'pointer',
+                  padding: '6px'
+                }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Modal Subheader & Actions */}
+            <div style={{
+              padding: '1rem 1.5rem',
+              borderBottom: '1px solid rgba(255,255,255,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px',
+              background: 'rgba(2, 6, 23, 0.4)'
+            }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: '800', color: '#E2E8F0' }}>
+                COURSES UNDER THIS PROGRAM ({programCourses.length})
+              </div>
+              <button
+                onClick={openCreateCourseModal}
+                className="btn-gold"
+                style={{ padding: '8px 16px', fontSize: '0.78rem' }}
+              >
+                <Plus size={15} />
+                <span>CREATE COURSE UNDER PROGRAM</span>
+              </button>
+            </div>
+
+            {/* Modal Body: Courses List */}
+            <div style={{
+              padding: '1.5rem',
+              overflowY: 'auto',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.25rem'
+            }}>
+              {loadingCourses ? (
+                <div style={{ textAlign: 'center', padding: '3rem', color: '#94A3B8' }}>
+                  Loading courses and materials...
+                </div>
+              ) : programCourses.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '3rem 1.5rem',
+                  border: '2px dashed rgba(214,188,102,0.3)',
+                  borderRadius: '12px'
+                }}>
+                  <FolderPlus size={40} color="#d6bc66" style={{ margin: '0 auto 12px auto' }} />
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#FFF', marginBottom: '6px' }}>
+                    No Courses Created Yet Under This Program
+                  </h4>
+                  <p style={{ fontSize: '0.825rem', color: '#94A3B8', maxWidth: '450px', margin: '0 auto 16px auto' }}>
+                    Create course units under this program, then upload audios, videos, pictures, PDFs, slide presentations, or notes for students.
+                  </p>
+                  <button
+                    onClick={openCreateCourseModal}
+                    className="btn-gold"
+                    style={{ padding: '8px 18px', fontSize: '0.8rem' }}
+                  >
+                    <Plus size={15} />
+                    <span>CREATE FIRST COURSE</span>
+                  </button>
+                </div>
+              ) : (
+                programCourses.map(course => (
+                  <div
+                    key={course._id}
+                    style={{
+                      background: 'rgba(5, 20, 84, 0.45)',
+                      border: '1px solid rgba(214,188,102,0.25)',
+                      borderRadius: '12px',
+                      padding: '1.25rem'
+                    }}
+                  >
+                    {/* Course Header */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '10px',
+                      marginBottom: '10px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{
+                          fontSize: '0.68rem',
+                          fontWeight: '900',
+                          color: '#d6bc66',
+                          border: '1px solid rgba(214,188,102,0.5)',
+                          padding: '2px 7px',
+                          borderRadius: '6px'
+                        }}>
+                          ORDER {course.order}
+                        </span>
+                        <h4 style={{ fontSize: '1.1rem', fontWeight: '800', color: '#FFF', margin: 0 }}>
+                          {course.title}
+                        </h4>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={() => openUploadMaterialModal(course)}
+                          className="btn-gold"
+                          style={{ padding: '6px 12px', fontSize: '0.72rem' }}
+                        >
+                          <Upload size={13} />
+                          <span>UPLOAD MATERIAL</span>
+                        </button>
+                        <button
+                          onClick={() => openEditCourseModal(course)}
+                          className="btn-outline-gold"
+                          style={{ padding: '6px 10px', fontSize: '0.72rem' }}
+                          title="Edit Course Name &amp; Description"
+                        >
+                          <Edit2 size={13} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCourse(course._id)}
+                          style={{
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            border: '1px solid #EF4444',
+                            color: '#F87171',
+                            borderRadius: '6px',
+                            padding: '6px 10px',
+                            fontSize: '0.72rem',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                          title="Delete Course and all materials"
+                        >
+                          <Trash2 size={13} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {course.description && (
+                      <p style={{ fontSize: '0.825rem', color: '#94A3B8', margin: '0 0 12px 0' }}>
+                        {course.description}
+                      </p>
+                    )}
+
+                    {/* Materials List Under Course */}
+                    <div style={{ marginTop: '12px' }}>
+                      <div style={{
+                        fontSize: '0.72rem',
+                        fontWeight: '800',
+                        color: '#CBD5E1',
+                        letterSpacing: '0.04em',
+                        marginBottom: '8px'
+                      }}>
+                        COURSE MATERIALS ({(course.lessons || []).length})
+                      </div>
+
+                      {(course.lessons || []).length === 0 ? (
+                        <div style={{
+                          fontSize: '0.78rem',
+                          color: '#64748B',
+                          background: 'rgba(0,0,0,0.25)',
+                          padding: '12px',
+                          borderRadius: '8px',
+                          border: '1px dashed rgba(255,255,255,0.1)'
+                        }}>
+                          No materials uploaded to this course yet. Click <strong>Upload Material</strong> above to attach Audios, Videos, Pictures, PDF, DOCS, or Slides.
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {course.lessons.map(mat => {
+                            const isAudio = mat.type === 'audio' || /\.(mp3|wav|m4a|ogg|aac)$/i.test(mat.fileName || '');
+                            const isVideo = mat.type === 'video' || mat.type === 'external_video' || /\.(mp4|webm|mkv|mov|avi)$/i.test(mat.fileName || '');
+                            const isPic = mat.type === 'picture' || /\.(png|jpe?g|webp|gif|svg)$/i.test(mat.fileName || '');
+                            const isSlides = mat.type === 'slides' || /\.(ppt|pptx|odp|key)$/i.test(mat.fileName || '');
+                            const isPdf = mat.type === 'pdf' || /\.pdf$/i.test(mat.fileName || '');
+
+                            const MaterialIcon = isAudio ? Music : isVideo ? Video : isPic ? ImageIcon : isSlides ? Presentation : FileText;
+
+                            return (
+                              <div
+                                key={mat._id}
+                                style={{
+                                  background: 'rgba(0,0,0,0.35)',
+                                  border: '1px solid rgba(255,255,255,0.08)',
+                                  borderRadius: '8px',
+                                  padding: '10px 14px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  flexWrap: 'wrap',
+                                  gap: '10px'
+                                }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                                  <div style={{
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
+                                    background: 'rgba(214,188,102,0.15)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <MaterialIcon size={16} color="#d6bc66" />
+                                  </div>
+                                  <div style={{ minWidth: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <span style={{
+                                        fontSize: '0.62rem',
+                                        fontWeight: '900',
+                                        color: '#000b3d',
+                                        background: '#d6bc66',
+                                        padding: '1px 6px',
+                                        borderRadius: '8px',
+                                        textTransform: 'uppercase'
+                                      }}>
+                                        {mat.type || 'DOCUMENT'}
+                                      </span>
+                                      <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#FFF' }}>
+                                        {mat.title}
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: '0.72rem', color: '#94A3B8', marginTop: '2px' }}>
+                                      {mat.fileName ? `${mat.fileName} • ` : ''}
+                                      {mat.fileSize ? `${(mat.fileSize / (1024 * 1024)).toFixed(2)} MB • ` : ''}
+                                      {mat.durationMinutes ? `${mat.durationMinutes} min` : ''}
+                                      {mat.mediaUrl ? ` • External link: ${mat.mediaUrl}` : ''}
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  {mat.filePath && (
+                                    <a
+                                      href={ElearningAPI.downloadMaterial(mat._id)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="btn-outline-gold"
+                                      style={{ padding: '5px 10px', fontSize: '0.72rem', textDecoration: 'none' }}
+                                    >
+                                      <Download size={13} />
+                                      <span>Download / Inspect</span>
+                                    </a>
+                                  )}
+                                  <button
+                                    onClick={() => handleDeleteMaterial(mat._id)}
+                                    style={{
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: '#EF4444',
+                                      cursor: 'pointer',
+                                      padding: '5px'
+                                    }}
+                                    title="Delete material"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Create / Edit Course Form */}
+      {showCourseModal && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.85)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3200,
+          padding: '1rem'
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: '520px',
+            width: '100%',
+            padding: '2rem',
+            borderRadius: '16px',
+            border: '1px solid #d6bc66'
+          }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#FFF', marginBottom: '1rem' }}>
+              {courseFormData.id ? 'Edit Course' : 'Create Course Under Program'}
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#94A3B8', marginBottom: '1.25rem' }}>
+              Program: <strong>{selectedProgramForCourses?.title}</strong>
+            </p>
+
+            <form onSubmit={handleSaveCourse} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  COURSE / MODULE TITLE *
+                </label>
+                <input
+                  type="text"
+                  value={courseFormData.title}
+                  onChange={(e) => setCourseFormData({ ...courseFormData, title: e.target.value })}
+                  placeholder="e.g. Course 1: Tactical Defensive Shape &amp; Positioning"
+                  className="form-control"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  COURSE ORDER / SEQUENCE
+                </label>
+                <input
+                  type="number"
+                  value={courseFormData.order}
+                  onChange={(e) => setCourseFormData({ ...courseFormData, order: Number(e.target.value) || 1 })}
+                  className="form-control"
+                  min="1"
+                  required
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  COURSE DESCRIPTION
+                </label>
+                <textarea
+                  value={courseFormData.description}
+                  onChange={(e) => setCourseFormData({ ...courseFormData, description: e.target.value })}
+                  placeholder="Summary of what this course covers..."
+                  rows={3}
+                  className="form-control"
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem' }}>
+                <button
+                  type="submit"
+                  disabled={processingAction}
+                  className="btn-gold"
+                  style={{ flex: 1, padding: '10px' }}
+                >
+                  <span>{processingAction ? 'SAVING...' : courseFormData.id ? 'UPDATE COURSE' : 'CREATE COURSE'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowCourseModal(false)}
+                  className="btn-outline-gold"
+                  style={{ padding: '10px 18px' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Upload Course Material */}
+      {showMaterialModal && materialTargetCourse && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.85)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 3200,
+          padding: '1rem'
+        }}>
+          <div className="glass-panel" style={{
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            padding: '2rem',
+            borderRadius: '16px',
+            border: '1px solid #d6bc66'
+          }}>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: '900', color: '#FFF', marginBottom: '4px' }}>
+              Upload Material to Course
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#d6bc66', marginBottom: '1.25rem' }}>
+              Course: <strong>{materialTargetCourse.title}</strong>
+            </p>
+
+            <form onSubmit={handleUploadMaterialSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  MATERIAL TITLE *
+                </label>
+                <input
+                  type="text"
+                  value={materialFormData.title}
+                  onChange={(e) => setMaterialFormData({ ...materialFormData, title: e.target.value })}
+                  placeholder="e.g. Tactical Positioning Video / Lecture Slides / Drill Sheet"
+                  className="form-control"
+                  required
+                />
+              </div>
+
+              {/* Material Type Pills */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '6px' }}>
+                  MATERIAL FORMAT TYPE *
+                </label>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))',
+                  gap: '6px'
+                }}>
+                  {[
+                    { id: 'video', label: 'Video (MP4)', icon: Video },
+                    { id: 'audio', label: 'Audio (MP3)', icon: Music },
+                    { id: 'picture', label: 'Picture / Image', icon: ImageIcon },
+                    { id: 'pdf', label: 'PDF Document', icon: FileText },
+                    { id: 'document', label: 'DOCS / Text', icon: Paperclip },
+                    { id: 'slides', label: 'Slides (PPT)', icon: Presentation },
+                    { id: 'other', label: 'Other Document', icon: FolderPlus },
+                    { id: 'external_video', label: 'External Link', icon: ExternalLink }
+                  ].map(item => {
+                    const Icon = item.icon;
+                    const isSel = materialFormData.type === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setMaterialFormData({ ...materialFormData, type: item.id })}
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          border: isSel ? '2px solid #d6bc66' : '1px solid rgba(255,255,255,0.1)',
+                          background: isSel ? 'rgba(214,188,102,0.2)' : 'rgba(0,0,0,0.3)',
+                          color: isSel ? '#FFF' : '#94A3B8',
+                          fontSize: '0.72rem',
+                          fontWeight: '800',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <Icon size={14} color={isSel ? '#d6bc66' : '#94A3B8'} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* File Upload Selector */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  ATTACH FILE (Audio, Video, Picture, PDF, DOCS, Slides, Zip...)
+                </label>
+                <div style={{
+                  border: '2px dashed rgba(214,188,102,0.4)',
+                  padding: '1.25rem',
+                  borderRadius: '10px',
+                  textAlign: 'center',
+                  background: 'rgba(0,0,0,0.25)'
+                }}>
+                  <input
+                    type="file"
+                    id="material-file-upload"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        setMaterialFormData(prev => ({
+                          ...prev,
+                          file,
+                          title: prev.title || file.name.replace(/\.[^/.]+$/, '')
+                        }));
+                      }
+                    }}
+                    accept=".mp4,.webm,.mkv,.mov,.avi,.wmv,.mp3,.wav,.m4a,.ogg,.aac,.flac,.png,.jpg,.jpeg,.webp,.gif,.svg,.pdf,.doc,.docx,.txt,.rtf,.odt,.ppt,.pptx,.odp,.key,.xls,.xlsx,.csv,.zip,.rar,.7z"
+                    style={{ display: 'none' }}
+                  />
+                  <label
+                    htmlFor="material-file-upload"
+                    className="btn-gold"
+                    style={{ display: 'inline-flex', padding: '8px 16px', fontSize: '0.78rem', cursor: 'pointer' }}
+                  >
+                    <Upload size={14} />
+                    <span>CHOOSE MATERIAL FILE</span>
+                  </label>
+
+                  {materialFormData.file ? (
+                    <div style={{ marginTop: '10px', fontSize: '0.8rem', color: '#10B981', fontWeight: '800' }}>
+                      Selected: {materialFormData.file.name} ({(materialFormData.file.size / (1024 * 1024)).toFixed(2)} MB)
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: '8px', fontSize: '0.72rem', color: '#94A3B8' }}>
+                      Supported formats: Audios (MP3, WAV), Videos (MP4, WEBM), Pictures (PNG, JPG), PDF, DOCS (Word, TXT), Slides (PowerPoint) &amp; more (up to 250MB)
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* External Media URL (if applicable) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  EXTERNAL URL / VIDEO LINK (OPTIONAL)
+                </label>
+                <input
+                  type="url"
+                  value={materialFormData.mediaUrl}
+                  onChange={(e) => setMaterialFormData({ ...materialFormData, mediaUrl: e.target.value })}
+                  placeholder="e.g. YouTube embed URL or external resource link"
+                  className="form-control"
+                />
+              </div>
+
+              {/* Description / Instructions */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                  MATERIAL NOTES / DESCRIPTION
+                </label>
+                <textarea
+                  value={materialFormData.description}
+                  onChange={(e) => setMaterialFormData({ ...materialFormData, description: e.target.value })}
+                  placeholder="Instructions or lecture notes for students..."
+                  rows={2}
+                  className="form-control"
+                />
+              </div>
+
+              {/* Duration */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '800', color: '#CBD5E1', marginBottom: '4px' }}>
+                    ESTIMATED DURATION (MINUTES)
+                  </label>
+                  <input
+                    type="number"
+                    value={materialFormData.durationMinutes}
+                    onChange={(e) => setMaterialFormData({ ...materialFormData, durationMinutes: Number(e.target.value) || 15 })}
+                    className="form-control"
+                    min="1"
+                  />
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', marginTop: '1.25rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.78rem', color: '#FFF', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={materialFormData.isRequired}
+                      onChange={(e) => setMaterialFormData({ ...materialFormData, isRequired: e.target.checked })}
+                    />
+                    <span>Required for Course Completion</span>
+                  </label>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '0.5rem' }}>
+                <button
+                  type="submit"
+                  disabled={uploadingMaterial}
+                  className="btn-gold"
+                  style={{ flex: 1, padding: '10px' }}
+                >
+                  <Upload size={15} />
+                  <span>{uploadingMaterial ? 'UPLOADING MATERIAL...' : 'UPLOAD MATERIAL TO COURSE'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowMaterialModal(false)}
+                  className="btn-outline-gold"
+                  style={{ padding: '10px 18px' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
