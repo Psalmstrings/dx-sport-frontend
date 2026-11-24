@@ -1,8 +1,40 @@
 {
-    "rewrites":[
-        {
-            "source": "/(.*)",
-            "destination": "/index.html"
-        }
-    ]
+  "rewrites": [
+    {
+      "source": "/news/:slug",
+      "destination": "https://dx-sport-backend.onrender.com/news/:slug"
+    },
+    {
+      "source": "/news",
+      "destination": "https://dx-sport-backend.onrender.com/news"
+    },
+    {
+      "source": "/match/:id",
+      "destination": "https://dx-sport-backend.onrender.com/match/:id"
+    },
+    {
+      "source": "/fixtures/:id",
+      "destination": "https://dx-sport-backend.onrender.com/fixtures/:id"
+    },
+    {
+      "source": "/fixtures",
+      "destination": "https://dx-sport-backend.onrender.com/fixtures"
+    },
+    {
+      "source": "/table/:leagueCode",
+      "destination": "https://dx-sport-backend.onrender.com/table/:leagueCode"
+    },
+    {
+      "source": "/table",
+      "destination": "https://dx-sport-backend.onrender.com/table"
+    },
+    {
+      "source": "/standings",
+      "destination": "https://dx-sport-backend.onrender.com/standings"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

@@ -12,16 +12,24 @@ export const PostDetailModal = ({ post, onClose }) => {
     const originalTitle = document.title;
     document.title = `${post.title} | DX SPORT`;
 
-    const shareUrl = window.location.href;
-    const postImageUrl = getImageUrl(post.image || post.coverImage);
-    const postSummary = post.summary || post.title;
+    const currentUrl = post.slug ? `${window.location.origin}/news/${post.slug}` : window.location.href;
+    let postImageUrl = getImageUrl(post.image || post.coverImage);
+    if (postImageUrl && postImageUrl.startsWith('http://')) {
+      postImageUrl = 'https://' + postImageUrl.slice(7);
+    }
+    let ogImageUrl = postImageUrl;
+    if (ogImageUrl && ogImageUrl.includes('res.cloudinary.com') && ogImageUrl.includes('/image/upload/') && !ogImageUrl.includes('w_')) {
+      ogImageUrl = ogImageUrl.replace('/image/upload/', '/image/upload/c_fill,w_1200,h_630,q_auto,f_jpg/');
+    }
+
+    const postSummary = post.summary || (post.content ? post.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 180) : post.title);
 
     // Helper to set meta tag content
     const setMetaTag = (property, content) => {
       let element = document.querySelector(`meta[property="${property}"]`) || document.querySelector(`meta[name="${property}"]`);
       if (!element) {
         element = document.createElement('meta');
-        if (property.startsWith('og:')) {
+        if (property.startsWith('og:') || property.startsWith('article:')) {
           element.setAttribute('property', property);
         } else {
           element.setAttribute('name', property);
@@ -31,13 +39,23 @@ export const PostDetailModal = ({ post, onClose }) => {
       element.setAttribute('content', content);
     };
 
+    setMetaTag('og:type', 'article');
+    setMetaTag('og:site_name', 'DX SPORTS');
     setMetaTag('og:title', post.title);
     setMetaTag('og:description', postSummary);
-    setMetaTag('og:image', postImageUrl);
-    setMetaTag('og:url', shareUrl);
+    setMetaTag('og:image', ogImageUrl);
+    setMetaTag('og:image:secure_url', ogImageUrl);
+    setMetaTag('og:image:type', 'image/jpeg');
+    setMetaTag('og:image:width', '1200');
+    setMetaTag('og:image:height', '630');
+    setMetaTag('og:url', currentUrl);
+    setMetaTag('twitter:card', 'summary_large_image');
+    setMetaTag('twitter:site', '@DXSportsbr');
+    setMetaTag('twitter:creator', '@DXSportsbr');
     setMetaTag('twitter:title', post.title);
     setMetaTag('twitter:description', postSummary);
-    setMetaTag('twitter:image', postImageUrl);
+    setMetaTag('twitter:image', ogImageUrl);
+    setMetaTag('twitter:url', currentUrl);
 
     // Inject JSON-LD NewsArticle schema for Google SEO
     const jsonLdScript = document.createElement('script');
@@ -47,7 +65,7 @@ export const PostDetailModal = ({ post, onClose }) => {
       '@context': 'https://schema.org',
       '@type': 'NewsArticle',
       'headline': post.title,
-      'image': [postImageUrl],
+      'image': [ogImageUrl],
       'datePublished': post.createdAt || new Date().toISOString(),
       'dateModified': post.updatedAt || post.createdAt || new Date().toISOString(),
       'author': {
@@ -56,11 +74,15 @@ export const PostDetailModal = ({ post, onClose }) => {
       },
       'publisher': {
         '@type': 'Organization',
-        'name': 'DX SPORT',
+        'name': 'DX SPORTS',
         'logo': {
           '@type': 'ImageObject',
-          'url': 'https://dxsports.com/logo.png'
+          'url': 'https://dxsportz.com/og-default.png'
         }
+      },
+      'mainEntityOfPage': {
+        '@type': 'WebPage',
+        '@id': currentUrl
       },
       'description': postSummary
     });
@@ -83,7 +105,8 @@ export const PostDetailModal = ({ post, onClose }) => {
     facebook: `https://www.facebook.com/sharer/sharer.php?u=${shareUrlEncoded}`,
     x: `https://twitter.com/intent/tweet?url=${shareUrlEncoded}&text=${shareTitle}%20via%20@DXSportsbr`,
     whatsapp: `https://api.whatsapp.com/send?text=${shareTitle}%20${shareUrlEncoded}`,
-    telegram: `https://t.me/share/url?url=${shareUrlEncoded}&text=${shareTitle}`
+    telegram: `https://t.me/share/url?url=${shareUrlEncoded}&text=${shareTitle}`,
+    linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${shareUrlEncoded}`
   };
 
   const handleCopyLink = () => {
@@ -386,6 +409,31 @@ export const PostDetailModal = ({ post, onClose }) => {
                   <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.65-.54.81-1.08.5l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.05 5.56-5.02c.24-.22-.05-.34-.37-.13l-6.87 4.33-2.96-.92c-.64-.2-.65-.64.13-.95l11.57-4.46c.53-.2 1.01.12.85.84z"/>
                 </svg>
                 <span>Telegram</span>
+              </a>
+
+              {/* LinkedIn Share */}
+              <a
+                href={shareLinks.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: '#0A66C2',
+                  color: '#FFF',
+                  padding: '9px 15px',
+                  borderRadius: '20px',
+                  fontSize: '0.825rem',
+                  fontWeight: '800',
+                  textDecoration: 'none',
+                  minHeight: '42px'
+                }}
+              >
+                <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                </svg>
+                <span>LinkedIn</span>
               </a>
 
               {/* Copy Link Button */}
